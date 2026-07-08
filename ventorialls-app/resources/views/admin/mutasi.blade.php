@@ -126,7 +126,7 @@
              class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4" 
              style="display: none;">
             <div @click.away="openModal = false" class="bg-white w-full max-w-lg flex flex-col rounded-2xl shadow-2xl overflow-hidden">
-                <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-2xl">
                     <div>
                         <h2 class="text-lg font-bold text-slate-800">Form Pencatatan</h2>
                         <p class="text-xs text-slate-500">Isi detail barang yang masuk atau keluar.</p>
@@ -202,21 +202,8 @@
       function mutasiApp() {
         return {
           activeTab: 'masuk',
-          barangMasuk: [
-            { jenis: 'Mouse', merk: 'Logitech B100', jumlah: 100, satuan: 'Unit', tanggal: '20 Juni 2026', keterangan: '' },
-            { jenis: 'Headset', merk: 'Logitech H111', jumlah: 50, satuan: 'Unit', tanggal: '20 Juni 2026', keterangan: '' },
-            { jenis: 'Laptop', merk: 'HP', jumlah: 13, satuan: 'Unit', tanggal: '20 Juni 2026', keterangan: '' },
-            { jenis: 'Laptop', merk: 'DELL', jumlah: 3, satuan: 'Unit', tanggal: '20 Juni 2026', keterangan: '' },
-            { jenis: 'Laptop', merk: 'DELL', jumlah: 10, satuan: 'Unit', tanggal: '20 Juni 2026', keterangan: '' },
-            { jenis: 'Laptop', merk: 'HP', jumlah: 4, satuan: 'Unit', tanggal: '20 Juni 2026', keterangan: '' },
-            { jenis: 'Laptop', merk: 'LENOVO', jumlah: 6, satuan: 'Unit', tanggal: '20 Juni 2026', keterangan: '' },
-            { jenis: 'USB AUDIO', merk: 'ESSAGER', jumlah: 15, satuan: 'Unit', tanggal: '20 Juni 2026', keterangan: '' },
-          ],
-          barangKeluar: [
-            { jenis: 'Kabel Adaptor', merk: '', jumlah: 2, satuan: '', tanggal: '1 Juli 2026', keterangan: '' },
-            { jenis: 'Adaptor', merk: '', jumlah: 13, satuan: '', tanggal: '1 Juli 2026', keterangan: '' },
-            { jenis: 'Laptop', merk: '', jumlah: 12, satuan: 'Unit', tanggal: '1 Juli 2026', keterangan: '' },
-          ]
+          barangMasuk: [],
+          barangKeluar: []
         }
       }
     </script>
