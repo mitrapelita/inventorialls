@@ -19,7 +19,7 @@ class PageController extends Controller
             'total_aset'     => Inventory::count(),
             'aset_aktif'     => Inventory::where('status', 'Aktif')->count(),
             'aset_disimpan'  => Inventory::where('status', 'Disimpan')->where('kondisi', 'Baik')->count(),
-            'aset_rusak'     => Inventory::where('kondisi', 'Rusak')->count(),
+            'aset_rusak'     => Inventory::where('status', 'Disimpan')->where('kondisi', 'Rusak')->count(),
             'return_vendor'  => Inventory::where('status', 'Return Vendor')->count(),
             'total_karyawan' => User::where('role', 'karyawan')->where('status_kerja', 'Aktif')->count(),
             'tiket_pending'  => Transaction::where('status', 'menunggu_validasi')->count(),
@@ -37,11 +37,30 @@ class PageController extends Controller
             ->selectRaw('jenis as kategori, count(*) as count')
             ->groupBy('jenis')->pluck('count', 'kategori');
             
-        $breakdown_rusak = Inventory::where('kondisi', 'Rusak')
+        $breakdown_rusak = Inventory::where('status', 'Disimpan')->where('kondisi', 'Rusak')
             ->selectRaw('jenis as kategori, count(*) as count')
             ->groupBy('jenis')->pluck('count', 'kategori');
 
-        return view('admin.dashboard', compact('stats', 'breakdown_aktif', 'breakdown_tersedia', 'breakdown_return', 'breakdown_rusak'));
+        // Data for Recent Activity Log
+        $recent_activities = \App\Models\ActivityLog::with('admin')->latest()->take(8)->get();
+
+        // Data for Chart (Activity count per day for the last 7 days)
+        $chart_data = \App\Models\ActivityLog::selectRaw('DATE(created_at) as date, count(*) as count')
+            ->where('created_at', '>=', now()->subDays(6)->startOfDay())
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->pluck('count', 'date');
+
+        // Fill missing days with 0 for chart
+        $chart_labels = [];
+        $chart_values = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $dateStr = now()->subDays($i)->format('Y-m-d');
+            $chart_labels[] = now()->subDays($i)->format('d M');
+            $chart_values[] = $chart_data->has($dateStr) ? $chart_data[$dateStr] : 0;
+        }
+
+        return view('admin.dashboard', compact('stats', 'breakdown_aktif', 'breakdown_tersedia', 'breakdown_return', 'breakdown_rusak', 'recent_activities', 'chart_labels', 'chart_values'));
 
     }
 
@@ -93,6 +112,12 @@ class PageController extends Controller
                     'id' => $user ? $user->id : uniqid(),
                     'peminjam' => $pengguna,
                     'dept' => $user ? $user->department : '-',
+                    'id_karyawan' => $user ? $user->id_karyawan : '-',
+                    'posisi' => $user ? $user->posisi : '-',
+                    'kontak' => $user ? $user->kontak : '-',
+                    'no_ktp' => $user ? $user->no_ktp : '-',
+                    'alamat_ktp' => $user ? $user->alamat_ktp : '-',
+                    'domisili' => $user ? $user->domisili : '-',
                     'barang' => $items->count() . ' Barang',
                     'pinjam_dalam' => $items->where('hak_bawa_pulang', false)->count(),
                     'pinjam_luar'  => $items->where('hak_bawa_pulang', true)->count(),
@@ -107,6 +132,7 @@ class PageController extends Controller
                         'doc' => $t->doc_number,
                         'type' => $t->type,
                         'tanggal' => $t->created_at->format('d M Y'),
+                        'tanggal_raw' => $t->created_at->format('Y-m-d'),
                         'status' => $t->status,
                     ])->values()
                 ];
@@ -139,8 +165,21 @@ class PageController extends Controller
     public function mutasi()
     {
         $masuk  = StockMutation::where('type', 'masuk')->with('creator')->latest()->get();
-        $keluar = StockMutation::where('type', 'keluar')->with('creator')->latest()->get();
-        return view('admin.mutasi', compact('masuk', 'keluar'));
+        
+        $keluarAll = \App\Models\Transaction::with('items.inventory')->where('type', 'barang_keluar')->latest()->get();
+        $keluarActive = collect();
+        $keluarHistory = collect();
+
+        foreach ($keluarAll as $t) {
+            $allReturned = $t->items->count() > 0 && $t->items->every(fn($item) => $item->is_returned);
+            if ($allReturned) {
+                $keluarHistory->push($t);
+            } else {
+                $keluarActive->push($t);
+            }
+        }
+
+        return view('admin.mutasi', compact('masuk', 'keluarActive', 'keluarHistory'));
     }
 
     public function laporan(Request $request)
@@ -218,9 +257,10 @@ class PageController extends Controller
                 $query->whereIn('status', ['menunggu_diisi', 'menunggu_validasi'])
                       ->orWhere(function ($q) {
                           $q->where('status', 'selesai')
-                            ->where('updated_at', '>=', now()->subHours(24));
+                            ->whereDate('updated_at', today());
                       });
             })
+            ->orderByRaw("CASE WHEN status IN ('menunggu_diisi', 'menunggu_validasi') THEN 1 ELSE 2 END")
             ->latest()->get();
         return view('user.serah-terima', compact('tickets'));
     }
@@ -232,9 +272,10 @@ class PageController extends Controller
                 $query->whereIn('status', ['menunggu_diisi', 'menunggu_validasi'])
                       ->orWhere(function ($q) {
                           $q->where('status', 'selesai')
-                            ->where('updated_at', '>=', now()->subHours(24));
+                            ->whereDate('updated_at', today());
                       });
             })
+            ->orderByRaw("CASE WHEN status IN ('menunggu_diisi', 'menunggu_validasi') THEN 1 ELSE 2 END")
             ->latest()->get();
         return view('user.peminjaman', compact('tickets'));
     }
@@ -246,9 +287,10 @@ class PageController extends Controller
                 $query->whereIn('status', ['menunggu_diisi', 'menunggu_validasi'])
                       ->orWhere(function ($q) {
                           $q->where('status', 'selesai')
-                            ->where('updated_at', '>=', now()->subHours(24));
+                            ->whereDate('updated_at', today());
                       });
             })
+            ->orderByRaw("CASE WHEN status IN ('menunggu_diisi', 'menunggu_validasi') THEN 1 ELSE 2 END")
             ->latest()->get();
         return view('user.penukaran', compact('tickets'));
     }

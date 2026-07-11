@@ -1,7 +1,7 @@
 <x-layout active="laporan" headerTitle="Pelacakan Histori Barang">
     <div x-data="{ searched: false }">
       <!-- Search Bar -->
-      <div class="bg-white rounded-2xl shadow-soft p-5 border border-slate-100 mb-6 max-w-3xl">
+      <div class="bg-white rounded-2xl shadow-soft p-4 md:p-5 border border-slate-100 mb-6 max-w-3xl">
         <h3 class="text-sm font-bold text-slate-700 mb-4">Cari Riwayat Inventaris</h3>
         <form action="{{ route('laporan') }}" method="GET" class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
           <div class="relative flex-1">
@@ -21,11 +21,11 @@
         <!-- Asset Info -->
         <div class="col-span-1 lg:col-span-1">
           @if($inventory)
-          <div class="bg-white rounded-2xl shadow-soft p-5 border border-slate-100 lg:sticky lg:top-8">
+          <div class="bg-white rounded-2xl shadow-soft p-4 md:p-5 border border-slate-100 lg:sticky lg:top-8">
             @php
               $iconName = 'laptop';
               $iconClasses = 'bg-blue-50 text-blue-600';
-              switch(strtolower(str_replace('_', ' ', $inventory->jenis ?? $inventory->kategori ?? ''))) {
+              switch (strtolower(str_replace('_', ' ', $inventory->jenis ?? $inventory->kategori ?? ''))) {
                 case 'laptop': $iconName = 'laptop'; $iconClasses = 'bg-blue-50 text-blue-600'; break;
                 case 'charger': $iconName = 'battery-charging'; $iconClasses = 'bg-amber-50 text-amber-600'; break;
                 case 'mouse': $iconName = 'mouse'; $iconClasses = 'bg-emerald-50 text-emerald-600'; break;
@@ -62,7 +62,7 @@
             </div>
           </div>
           @else
-          <div class="bg-rose-50 rounded-2xl shadow-soft p-5 border border-rose-100 text-center">
+          <div class="bg-rose-50 rounded-2xl shadow-soft p-4 md:p-5 border border-rose-100 text-center">
             <i data-lucide="alert-circle" class="w-8 h-8 text-rose-400 mx-auto mb-2"></i>
             <h4 class="text-sm font-bold text-rose-700 mb-1">Aset Tidak Ditemukan</h4>
             <p class="text-xs text-rose-600">Pastikan Nomor Aset yang kamu masukkan sudah benar.</p>
@@ -72,7 +72,7 @@
 
         <!-- Timeline -->
         <div class="col-span-1 lg:col-span-2">
-          <div class="bg-white rounded-2xl shadow-soft p-5 lg:p-6 border border-slate-100">
+          <div class="bg-white rounded-2xl shadow-soft p-4 md:p-5 lg:p-6 border border-slate-100">
             <h3 class="text-sm font-bold text-slate-700 mb-6 border-b pb-3">Riwayat Pergerakan Barang (Timeline)</h3>
             
             @if($inventory && $histori->isNotEmpty())

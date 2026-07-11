@@ -31,7 +31,7 @@ class SearchController extends Controller
             // Dapatkan aset aktif milik karyawan ini
             $asetAktif = Inventory::where('pengguna', $karyawan->name)
                 ->where('status', 'Aktif')
-                ->get(['id', 'jenis', 'merk', 'sn', 'kondisi', 'status'])
+                ->get(['id', 'jenis', 'merk', 'sn', 'kondisi', 'status', 'hak_bawa_pulang'])
                 ->toArray();
 
             return response()->json([

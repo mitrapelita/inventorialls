@@ -130,8 +130,8 @@
     <!-- Quick Access Kategori Transaksi -->
     <div class="mb-6">
         <h3 class="text-sm font-bold text-slate-700 mb-3">Akses Cepat Transaksi</h3>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <a href="{{ route('transaksi') }}" class="bg-white p-4 rounded-2xl shadow-soft border border-slate-100 flex items-center hover:border-[#1d4ed8] hover:shadow-md transition-all group cursor-pointer">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <a href="{{ route('transaksi') }}?tab=serah-terima" class="bg-white p-4 rounded-2xl shadow-soft border border-slate-100 flex items-center hover:border-[#1d4ed8] hover:shadow-md transition-all group cursor-pointer">
                 <div class="w-12 h-12 rounded-xl bg-blue-50 text-[#1d4ed8] flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-110 transition-transform shadow-sm">
                     <i data-lucide="user-plus" class="w-5 h-5"></i>
                 </div>
@@ -140,7 +140,7 @@
                     <p class="text-[10px] text-slate-400 truncate">Penyerahan Aset</p>
                 </div>
             </a>
-            <a href="{{ route('transaksi') }}" class="bg-white p-4 rounded-2xl shadow-soft border border-slate-100 flex items-center hover:border-amber-500 hover:shadow-md transition-all group cursor-pointer">
+            <a href="{{ route('transaksi') }}?tab=peminjaman" class="bg-white p-4 rounded-2xl shadow-soft border border-slate-100 flex items-center hover:border-amber-500 hover:shadow-md transition-all group cursor-pointer">
                 <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-110 transition-transform shadow-sm">
                     <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
                 </div>
@@ -149,7 +149,7 @@
                     <p class="text-[10px] text-slate-400 truncate">Peminjaman Aset</p>
                 </div>
             </a>
-            <a href="{{ route('transaksi') }}" class="bg-white p-4 rounded-2xl shadow-soft border border-slate-100 flex items-center hover:border-emerald-500 hover:shadow-md transition-all group cursor-pointer">
+            <a href="{{ route('transaksi') }}?tab=penukaran" class="bg-white p-4 rounded-2xl shadow-soft border border-slate-100 flex items-center hover:border-emerald-500 hover:shadow-md transition-all group cursor-pointer">
                 <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-110 transition-transform shadow-sm">
                     <i data-lucide="refresh-cw" class="w-5 h-5"></i>
                 </div>
@@ -174,30 +174,65 @@
             <option>Tahun ini</option>
         </select>
         </div>
-        <!-- Simulated Bar Chart -->
-        <div class="flex-1 w-full overflow-x-auto">
-            <div class="flex items-end justify-between space-x-2 pt-6 h-48 border-b border-slate-100 pb-2 relative min-w-[400px]">
-                <div class="absolute top-0 w-full border-t border-slate-100 border-dashed text-[10px] text-slate-400">100</div>
-                <div class="absolute top-1/2 w-full border-t border-slate-100 border-dashed text-[10px] text-slate-400 transform -translate-y-1/2">50</div>
+        <!-- Real Bar Chart -->
+        <div class="flex-1 w-full overflow-x-auto flex flex-col pb-4">
+            @php $max_chart = max(10, count($chart_values) > 0 ? max($chart_values) : 0); @endphp
+            <div class="flex-1 flex items-end justify-between space-x-2 pt-8 border-b border-slate-100 pb-2 relative min-w-[400px] mt-4">
+                <div class="absolute top-0 w-full border-t border-slate-100 border-dashed text-[10px] text-slate-400">{{ $max_chart }}</div>
+                <div class="absolute top-1/2 w-full border-t border-slate-100 border-dashed text-[10px] text-slate-400 transform -translate-y-1/2">{{ ceil($max_chart / 2) }}</div>
             
-            <!-- Bars removed for real data -->
-            <div class="absolute inset-0 flex items-center justify-center">
-                <span class="text-sm text-slate-400 font-medium">Belum ada data chart.</span>
-            </div>
+                @if(count($chart_values) > 0 && array_sum($chart_values) > 0)
+                    @foreach($chart_values as $index => $value)
+                        <div class="w-1/7 flex flex-col items-center group relative z-10 w-full max-w-[40px]">
+                            <div class="w-full bg-[#1d4ed8] rounded-t-md hover:bg-[#1e40af] transition-all relative" 
+                                 style="height: {{ ($value / $max_chart) * 100 }}%; min-height: {{ $value > 0 ? '4px' : '0px' }}">
+                                <div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                                    {{ $value }}
+                                </div>
+                            </div>
+                            <span class="text-[10px] text-slate-400 mt-2 truncate">{{ $chart_labels[$index] }}</span>
+                        </div>
+                    @endforeach
+                @else
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-sm text-slate-400 font-medium">Belum ada data chart.</span>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
 
     <!-- Recent Activity Area -->
-    <div class="col-span-1 bg-white rounded-2xl shadow-soft border border-slate-100 p-5 flex flex-col">
-        <h3 class="text-base font-bold text-slate-700 mb-4">Log Aktivitas Terbaru</h3>
-        <div class="flex-1 overflow-y-auto space-y-4">
-        
-        <div class="flex items-center justify-center h-full">
-            <p class="text-sm text-slate-400 font-medium">Belum ada log aktivitas.</p>
+    <div class="col-span-1 bg-white rounded-2xl shadow-soft border border-slate-100 p-5 flex flex-col h-[400px]">
+        <h3 class="text-base font-bold text-slate-700 mb-4 shrink-0">Log Aktivitas Terbaru</h3>
+        <div class="flex-1 overflow-y-auto space-y-4 pr-1 mb-4">
+            @forelse($recent_activities as $log)
+            <div class="flex items-start">
+                @php
+                    $icon = 'activity';
+                    $color = 'blue';
+                    if($log->action == 'created' || $log->action == 'approved') { $icon = 'check-circle'; $color = 'emerald'; }
+                    elseif($log->action == 'deleted' || $log->action == 'rejected') { $icon = 'x-circle'; $color = 'rose'; }
+                    elseif($log->action == 'updated') { $icon = 'edit'; $color = 'amber'; }
+                @endphp
+                <div class="w-8 h-8 rounded-full bg-{{$color}}-50 flex items-center justify-center mr-3 shrink-0">
+                    <i data-lucide="{{ $icon }}" class="w-4 h-4 text-{{$color}}-500"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-semibold text-slate-800">{{ $log->admin->name ?? $log->admin->nama ?? 'Sistem' }}</p>
+                    <p class="text-[11px] text-slate-500 truncate" title="{{ $log->description }}">{{ $log->description }}</p>
+                    <p class="text-[9px] text-slate-400 mt-0.5">{{ $log->created_at->diffForHumans() }}</p>
+                </div>
+            </div>
+            @empty
+            <div class="flex items-center justify-center h-full">
+                <p class="text-sm text-slate-400 font-medium">Belum ada log aktivitas.</p>
+            </div>
+            @endforelse
         </div>
-
-        </div>
+        <a href="{{ route('log') }}" class="mt-auto block w-full text-center bg-slate-50 hover:bg-slate-100 text-[#1d4ed8] text-xs font-semibold py-2.5 rounded-xl transition-colors shrink-0 border border-slate-200">
+            Lihat Selengkapnya
+        </a>
     </div>
     </div>
 </x-layout>

@@ -53,9 +53,9 @@
                     <option value="LAN Extender">LAN Extender</option>
                     <option value="Charger">Charger</option>
                     <option value="Mouse">Mouse</option>
-                    <option value="Proyektor">Proyektor</option>
-                    <option value="RAM">RAM</option>
-                    <option value="Lainnya">Lainnya</option>
+                    <option value="Headset">Headset</option>
+                    <option value="Audio Jack">Audio Jack</option>
+                    <option value="HP Root">HP Root</option>
                 </select>
                 <button @click="openDeletePinModal('bulk')" :disabled="selectedIds.length === 0" class="px-3 py-2 rounded-lg text-xs font-medium transition-all shadow-sm flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed" :class="selectedIds.length > 0 ? 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200' : 'bg-slate-50 text-slate-400 border border-slate-200'">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5 mr-1.5"></i>
@@ -102,22 +102,22 @@
                                                 'bg-emerald-50 text-emerald-600': item.jenis.toLowerCase() === 'mouse',
                                                 'bg-indigo-50 text-indigo-600': item.jenis.toLowerCase().includes('lan'),
                                                 'bg-rose-50 text-rose-600': item.jenis.toLowerCase() === 'headset',
-                                                'bg-purple-50 text-purple-600': ['hp root', 'smartphone', 'hp'].includes(item.jenis.toLowerCase()),
-                                                'bg-orange-50 text-orange-600': item.jenis.toLowerCase() === 'audio jack',
-                                                'bg-slate-100 text-slate-600': !['laptop', 'charger', 'mouse', 'lan extender', 'headset', 'hp root', 'smartphone', 'hp', 'audio jack'].includes(item.jenis.toLowerCase())
+                                                'bg-purple-50 text-purple-600': ['hp root', 'hp_root', 'smartphone', 'hp'].includes(item.jenis.toLowerCase()),
+                                                'bg-orange-50 text-orange-600': ['audio jack', 'audio_jack'].includes(item.jenis.toLowerCase()),
+                                                'bg-slate-100 text-slate-600': !['laptop', 'charger', 'mouse', 'lan extender', 'lan_extender', 'headset', 'hp root', 'hp_root', 'smartphone', 'hp', 'audio jack', 'audio_jack'].includes(item.jenis.toLowerCase())
                                             }">
                                             <i data-lucide="laptop" class="w-4 h-4" x-show="item.jenis.toLowerCase() === 'laptop'"></i>
                                             <i data-lucide="battery-charging" class="w-4 h-4" x-show="item.jenis.toLowerCase() === 'charger'"></i>
                                             <i data-lucide="mouse" class="w-4 h-4" x-show="item.jenis.toLowerCase() === 'mouse'"></i>
                                             <i data-lucide="network" class="w-4 h-4" x-show="item.jenis.toLowerCase().includes('lan')"></i>
                                             <i data-lucide="headphones" class="w-4 h-4" x-show="item.jenis.toLowerCase() === 'headset'"></i>
-                                            <i data-lucide="smartphone" class="w-4 h-4" x-show="['hp root', 'smartphone', 'hp'].includes(item.jenis.toLowerCase())"></i>
-                                            <i data-lucide="plug" class="w-4 h-4" x-show="item.jenis.toLowerCase() === 'audio jack'"></i>
-                                            <i data-lucide="box" class="w-4 h-4" x-show="!['laptop', 'charger', 'mouse', 'lan extender', 'headset', 'hp root', 'smartphone', 'hp', 'audio jack'].includes(item.jenis.toLowerCase())"></i>
+                                            <i data-lucide="smartphone" class="w-4 h-4" x-show="['hp root', 'hp_root', 'smartphone', 'hp'].includes(item.jenis.toLowerCase())"></i>
+                                            <i data-lucide="plug" class="w-4 h-4" x-show="['audio jack', 'audio_jack'].includes(item.jenis.toLowerCase())"></i>
+                                            <i data-lucide="box" class="w-4 h-4" x-show="!['laptop', 'charger', 'mouse', 'lan extender', 'lan_extender', 'headset', 'hp root', 'hp_root', 'smartphone', 'hp', 'audio jack', 'audio_jack'].includes(item.jenis.toLowerCase())"></i>
                                         </div>
                                         <div>
                                             <p class="font-bold text-slate-700 text-xs" x-text="item.merk"></p>
-                                            <p class="text-[10px] text-slate-400 font-medium" x-text="item.jenis"></p>
+                                            <p class="text-[10px] text-slate-400 font-medium" x-text="String(item.jenis || '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).replace('Lan ', 'LAN ').replace('Hp ', 'HP ')"></p>
                                         </div>
                                     </div>
                                 </td>
@@ -137,7 +137,7 @@
                                         :class="{
                                             'bg-emerald-50 text-emerald-600 border-emerald-200': item.status === 'Aktif',
                                             'bg-amber-50 text-amber-600 border-amber-200': item.status === 'Disimpan',
-                                            'bg-rose-50 text-rose-600 border-rose-200': item.status === 'Return'
+                                            'bg-rose-50 text-rose-600 border-rose-200': item.status === 'Return Vendor'
                                         }" x-text="item.status"></span>
                                 </td>
                                 <td class="px-5 py-3">
@@ -182,14 +182,14 @@
             <div @click.away="openModal = false" 
                  class="bg-white rounded-2xl shadow-xl w-full max-w-4xl flex flex-col h-[95vh] overflow-hidden">
                 
-                <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 flex-shrink-0 rounded-t-2xl">
-                    <h3 class="text-lg font-bold text-slate-800" x-text="isEdit ? 'Edit Master Data Inventaris' : 'Lengkapi Master Data Inventaris'"></h3>
+                <div class="px-4 py-3 md:px-5 md:py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 flex-shrink-0 rounded-t-2xl">
+                    <h3 class="text-base md:text-lg font-bold text-slate-800" x-text="isEdit ? 'Edit Master Data Inventaris' : 'Lengkapi Master Data Inventaris'"></h3>
                     <button @click="openModal = false" class="text-slate-400 hover:text-slate-600 transition-colors">
-                        <i data-lucide="x" class="w-5 h-5"></i>
+                        <i data-lucide="x" class="w-4 h-4 md:w-5 md:h-5"></i>
                     </button>
                 </div>
                 
-                <div class="p-6 overflow-y-auto flex-1">
+                <div class="p-4 md:p-6 overflow-y-auto flex-1">
                     <form :action="formAction" method="POST" class="space-y-6 flex flex-col h-full">
                         @csrf
                         <input type="hidden" name="_method" :value="formMethod">
@@ -218,11 +218,11 @@
                                     <label class="block text-sm font-semibold text-slate-700 mb-1">No. Aset</label>
                                     <input type="text" name="sn" x-model="formData.sn" placeholder="UP-LAP-001" required class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 outline-none font-mono">
                                 </div>
-                                <div>
+                                <div x-show="showAdvanced" x-transition>
                                     <label class="block text-sm font-semibold text-slate-700 mb-1">Tanggal Masuk</label>
                                     <input type="date" name="tanggal_masuk" x-model="formData.tanggal_masuk" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 outline-none">
                                 </div>
-                                <div>
+                                <div x-show="showAdvanced" x-transition>
                                     <label class="block text-sm font-semibold text-slate-700 mb-1">Kepemilikan</label>
                                     <select name="kepemilikan" x-model="formData.kepemilikan" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 outline-none">
                                         <option value="PTMPTB">PTMPTB</option>
@@ -230,10 +230,18 @@
                                     </select>
                                 </div>
                             </div>
+                            
+                            <!-- Toggle Advanced Fields -->
+                            <div class="mt-4 flex justify-center border-b border-dashed border-slate-200 pb-4">
+                                <button type="button" @click="showAdvanced = !showAdvanced" class="px-4 py-2 bg-slate-50 text-[#1d4ed8] hover:bg-blue-50 border border-slate-200 hover:border-[#1d4ed8]/30 rounded-xl text-sm font-semibold transition-all flex items-center shadow-sm">
+                                    <span x-text="showAdvanced ? 'Sembunyikan Data Lanjutan' : 'Tampilkan Data Lanjutan'"></span>
+                                    <i data-lucide="chevron-down" class="w-4 h-4 ml-2 transition-transform" :class="showAdvanced ? 'rotate-180' : ''"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Section: Info Pengguna -->
-                        <div>
+                        <div x-show="showAdvanced" x-transition x-cloak>
                             <h4 class="text-sm font-bold text-[#1d4ed8] uppercase tracking-wider mb-4 border-b pb-2">Informasi Pengguna</h4>
                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <div>
@@ -283,9 +291,9 @@
                         </div>
 
                         <!-- Section: Status & Kondisi -->
-                        <div>
+                        <div x-show="showAdvanced" x-transition x-cloak>
                             <h4 class="text-sm font-bold text-[#1d4ed8] uppercase tracking-wider mb-4 border-b pb-2">Status & Kondisi</h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-semibold text-slate-700 mb-1">Kondisi Barang</label>
                                     <select name="kondisi" x-model="formData.kondisi" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 outline-none">
@@ -340,38 +348,38 @@
             <div @click.away="openViewModal = false" 
                  class="bg-white rounded-2xl shadow-xl w-full max-w-3xl flex flex-col overflow-hidden transform transition-all">
                 
-                <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 rounded-t-2xl">
+                <div class="px-4 py-3 md:px-5 md:py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 rounded-t-2xl">
                     <h3 class="text-sm font-bold text-slate-800">Detail & Log Riwayat Inventaris</h3>
                     <button @click="openViewModal = false" class="text-slate-400 hover:text-slate-600 transition-colors">
                         <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                 </div>
                 
-                <div class="p-6 overflow-y-auto max-h-[75vh]" x-show="selectedData">
-                    <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+                <div class="p-4 md:p-6 overflow-y-auto max-h-[75vh]" x-show="selectedData">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-6">
                         
                         <!-- Left: Info Detail (3 cols) -->
                         <div class="md:col-span-3 space-y-4">
                             <div class="flex items-center mb-6">
-                                <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4 flex-shrink-0"
+                                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4 flex-shrink-0"
                                     :class="{
                                         'bg-blue-50 text-blue-600': (selectedData?.jenis || '').toLowerCase() === 'laptop',
                                         'bg-amber-50 text-amber-600': (selectedData?.jenis || '').toLowerCase() === 'charger',
                                         'bg-emerald-50 text-emerald-600': (selectedData?.jenis || '').toLowerCase() === 'mouse',
                                         'bg-indigo-50 text-indigo-600': (selectedData?.jenis || '').toLowerCase().includes('lan'),
                                         'bg-rose-50 text-rose-600': (selectedData?.jenis || '').toLowerCase() === 'headset',
-                                        'bg-purple-50 text-purple-600': ['hp root', 'smartphone', 'hp'].includes((selectedData?.jenis || '').toLowerCase()),
-                                        'bg-orange-50 text-orange-600': (selectedData?.jenis || '').toLowerCase() === 'audio jack',
-                                        'bg-slate-100 text-slate-600': !['laptop', 'charger', 'mouse', 'lan extender', 'headset', 'hp root', 'smartphone', 'hp', 'audio jack'].includes((selectedData?.jenis || '').toLowerCase())
+                                        'bg-purple-50 text-purple-600': ['hp root', 'hp_root', 'smartphone', 'hp'].includes((selectedData?.jenis || '').toLowerCase()),
+                                        'bg-orange-50 text-orange-600': ['audio jack', 'audio_jack'].includes((selectedData?.jenis || '').toLowerCase()),
+                                        'bg-slate-100 text-slate-600': !['laptop', 'charger', 'mouse', 'lan extender', 'lan_extender', 'headset', 'hp root', 'hp_root', 'smartphone', 'hp', 'audio jack', 'audio_jack'].includes((selectedData?.jenis || '').toLowerCase())
                                     }">
                                     <i data-lucide="laptop" class="w-6 h-6" x-show="(selectedData?.jenis || '').toLowerCase() === 'laptop'"></i>
                                     <i data-lucide="battery-charging" class="w-6 h-6" x-show="(selectedData?.jenis || '').toLowerCase() === 'charger'"></i>
                                     <i data-lucide="mouse" class="w-6 h-6" x-show="(selectedData?.jenis || '').toLowerCase() === 'mouse'"></i>
                                     <i data-lucide="network" class="w-6 h-6" x-show="(selectedData?.jenis || '').toLowerCase().includes('lan')"></i>
                                     <i data-lucide="headphones" class="w-6 h-6" x-show="(selectedData?.jenis || '').toLowerCase() === 'headset'"></i>
-                                    <i data-lucide="smartphone" class="w-6 h-6" x-show="['hp root', 'smartphone', 'hp'].includes((selectedData?.jenis || '').toLowerCase())"></i>
-                                    <i data-lucide="plug" class="w-6 h-6" x-show="(selectedData?.jenis || '').toLowerCase() === 'audio jack'"></i>
-                                    <i data-lucide="box" class="w-6 h-6" x-show="!['laptop', 'charger', 'mouse', 'lan extender', 'headset', 'hp root', 'smartphone', 'hp', 'audio jack'].includes((selectedData?.jenis || '').toLowerCase())"></i>
+                                    <i data-lucide="smartphone" class="w-6 h-6" x-show="['hp root', 'hp_root', 'smartphone', 'hp'].includes((selectedData?.jenis || '').toLowerCase())"></i>
+                                    <i data-lucide="plug" class="w-6 h-6" x-show="['audio jack', 'audio_jack'].includes((selectedData?.jenis || '').toLowerCase())"></i>
+                                    <i data-lucide="box" class="w-6 h-6" x-show="!['laptop', 'charger', 'mouse', 'lan extender', 'lan_extender', 'headset', 'hp root', 'hp_root', 'smartphone', 'hp', 'audio jack', 'audio_jack'].includes((selectedData?.jenis || '').toLowerCase())"></i>
                                 </div>
                                 <div>
                                     <h4 class="text-base font-bold text-slate-800" x-text="selectedData?.merk || '-'"></h4>
@@ -379,10 +387,10 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-y-4 gap-x-6 pt-4 border-t border-slate-100">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 pt-4 border-t border-slate-100">
                                 <div>
                                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Jenis Barang</p>
-                                    <p class="text-xs font-semibold text-slate-700" x-text="selectedData?.jenis || '-'"></p>
+                                    <p class="text-xs font-semibold text-slate-700" x-text="String(selectedData?.jenis || '-').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).replace('Lan ', 'LAN ').replace('Hp ', 'HP ')"></p>
                                 </div>
                                 <div>
                                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Kepemilikan</p>
@@ -480,7 +488,7 @@
     <div x-show="openPinModal" 
          class="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4" 
          style="display: none;">
-        <div @click.away="openPinModal = false" class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-fade-in text-center p-6">
+        <div @click.away="openPinModal = false" class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-fade-in text-center p-4 md:p-6">
             <div class="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i data-lucide="lock" class="w-8 h-8 text-rose-500"></i>
             </div>
@@ -587,6 +595,7 @@
                     kondisi: 'Baik', status: 'Disimpan', keterangan: ''
                 },
                 formData: {},
+                showAdvanced: false,
                 isSearching: false,
                 async searchKaryawan() {
                     if (!this.formData.pengguna) return;
@@ -612,7 +621,8 @@
                     let list = this.inventoryList;
                     
                     if (this.filterJenis !== '') {
-                        list = list.filter(i => i.jenis === this.filterJenis);
+                        const filterVal = this.filterJenis.toLowerCase().replace(/_/g, ' ');
+                        list = list.filter(i => (i.jenis || '').toLowerCase().replace(/_/g, ' ') === filterVal);
                     }
 
                     if (this.searchQuery !== '') {
@@ -632,6 +642,7 @@
                 },
                 openAddModal() {
                     this.isEdit = false;
+                    this.showAdvanced = false;
                     this.formAction = '/workspaceinventory/master';
                     this.formMethod = 'POST';
                     this.formData = JSON.parse(JSON.stringify(this.defaultData));
@@ -639,6 +650,7 @@
                 },
                 editData(item) {
                     this.isEdit = true;
+                    this.showAdvanced = true;
                     this.formAction = '/workspaceinventory/master/' + item.id;
                     this.formMethod = 'PUT';
                     this.formData = JSON.parse(JSON.stringify(item));

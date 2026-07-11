@@ -1,7 +1,7 @@
 <x-layout active="histori" headerTitle="Histori Barang">
     <div x-data="historiApp">
         {{-- Form Pencarian --}}
-        <div class="bg-white rounded-2xl shadow-soft p-5 border border-slate-100 mb-6">
+        <div class="bg-white rounded-2xl shadow-soft p-4 md:p-5 border border-slate-100 mb-6">
             <h3 class="text-base font-bold text-slate-700 mb-3">Cek Histori Penggunaan Aset</h3>
             <form method="GET" action="{{ route('histori') }}" class="flex space-x-3">
                 <input type="text" name="sn" value="{{ $sn ?? '' }}"
@@ -15,7 +15,7 @@
 
         @if($sn && $inventory)
             {{-- Info Aset --}}
-            <div class="bg-white rounded-2xl shadow-soft border border-slate-100 p-5 mb-6">
+            <div class="bg-white rounded-2xl shadow-soft border border-slate-100 p-4 md:p-5 mb-6">
                 <h4 class="text-sm font-bold text-slate-700 mb-3 uppercase tracking-wider">Informasi Aset: {{ $inventory->sn }}</h4>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div><span class="text-xs text-slate-400 block">Jenis</span><strong>{{ $inventory->jenis }}</strong></div>
@@ -79,7 +79,7 @@
                 </div>
             </div>
         @elseif($sn && !$inventory)
-            <div class="bg-rose-50 border border-rose-200 rounded-2xl p-6 text-center">
+            <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 md:p-6 text-center">
                 <p class="text-rose-600 font-semibold">Aset dengan No. SN <strong class="font-mono">{{ $sn }}</strong> tidak ditemukan di Master Data.</p>
                 <a href="{{ route('master') }}" class="mt-3 inline-block text-sm text-[#1d4ed8] hover:underline">→ Tambah aset baru di Master Data</a>
             </div>
@@ -89,7 +89,7 @@
     <div x-show="openPinModal" 
         class="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4" 
         style="display: none;">
-        <div @click.away="openPinModal = false" class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-fade-in text-center p-6">
+        <div @click.away="openPinModal = false" class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-fade-in text-center p-4 md:p-6">
             <div class="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i data-lucide="lock" class="w-8 h-8 text-rose-500"></i>
             </div>

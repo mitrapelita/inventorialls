@@ -92,14 +92,14 @@
             <form action="{{ route('login.submit') }}" method="POST" class="space-y-5">
                 @csrf
                 
-                <!-- Email Input -->
+                <!-- Username Input -->
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Alamat Email</label>
+                    <label class="block text-sm font-bold text-slate-700 mb-1.5">Username / ID Karyawan</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                            <i data-lucide="mail" class="w-5 h-5"></i>
+                            <i data-lucide="user" class="w-5 h-5"></i>
                         </div>
-                        <input type="email" name="email" required class="block w-full pl-10 pr-3 py-2.5 sm:py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8] bg-slate-50 focus:bg-white outline-none transition-all placeholder-slate-400">
+                        <input type="text" name="id_karyawan" required class="block w-full pl-10 pr-3 py-2.5 sm:py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8] bg-slate-50 focus:bg-white outline-none transition-all placeholder-slate-400">
                     </div>
                 </div>
 

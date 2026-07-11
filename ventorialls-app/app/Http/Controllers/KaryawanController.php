@@ -42,6 +42,12 @@ class KaryawanController extends Controller
         return back()->with('success', 'Karyawan berhasil ditambahkan!');
     }
 
+    public function print(User $user)
+    {
+        $items = Inventory::where('pengguna', $user->name)->get();
+        return view('admin.print.karyawan', compact('user', 'items'));
+    }
+
     public function update(Request $request, User $user)
     {
         $data = $request->validate([

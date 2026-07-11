@@ -11,12 +11,14 @@ class TransactionItem extends Model
 
     protected $fillable = [
         'transaction_id',
+        'inventory_id', // ditambahkan untuk fitur tracking barang
         'kategori',    // laptop, charger, mouse, lan_extender, headset, hp_root, audio_jack
         'no_aset',
         'sn_lama',     // khusus penukaran: SN aset lama yang diretur
         'alasan_penukaran',
         'penjelasan_kerusakan',
         'keterangan',
+        'is_returned', // ditambahkan untuk fitur tracking barang kembali
         'foto_path',
     ];
 
@@ -24,5 +26,11 @@ class TransactionItem extends Model
     public function transaction()
     {
         return $this->belongsTo(Transaction::class);
+    }
+
+    // Relasi: Master Inventory
+    public function inventory()
+    {
+        return $this->belongsTo(Inventory::class, 'inventory_id', 'id');
     }
 }

@@ -429,4 +429,18 @@ class TransaksiController extends Controller
         $transaction->load('items');
         return view('admin.print.transaksi', compact('transaction'));
     }
+
+    public function printMptb(\App\Models\User $user)
+    {
+        $items = \App\Models\Inventory::where('pengguna', $user->name)
+            ->where('hak_bawa_pulang', true)
+            ->get();
+            
+        $latestTx = \App\Models\Transaction::where('nama_pengaju', $user->name)
+            ->where('type', 'pinjam_eksternal')
+            ->latest()
+            ->first();
+            
+        return view('admin.print.hak-bawa-pulang', compact('user', 'items', 'latestTx'));
+    }
 }

@@ -26,6 +26,8 @@ class InventoryController extends Controller
             'kondisi'        => ['required', 'in:Baik,Rusak'],
             'status'         => ['required', 'in:Aktif,Disimpan,Return Vendor'],
             'keterangan'     => ['nullable', 'string'],
+        ], [
+            'sn.unique' => 'Nomor Aset (SN) ini sudah terdaftar di Master Data. Silakan gunakan Nomor Aset yang lain.',
         ]);
 
         $inventory = Inventory::create($data);
@@ -57,6 +59,8 @@ class InventoryController extends Controller
             'kondisi'        => ['required', 'in:Baik,Rusak'],
             'status'         => ['required', 'in:Aktif,Disimpan,Return Vendor'],
             'keterangan'     => ['nullable', 'string'],
+        ], [
+            'sn.unique' => 'Nomor Aset (SN) ini sudah terdaftar di Master Data. Silakan gunakan Nomor Aset yang lain.',
         ]);
 
         $inventory->update($data);

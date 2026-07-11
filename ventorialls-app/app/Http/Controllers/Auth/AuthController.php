@@ -25,8 +25,8 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email'    => ['required', 'email'],
-            'password' => ['required'],
+            'id_karyawan' => ['required', 'string'],
+            'password'    => ['required'],
         ]);
 
         $remember = $request->boolean('remember');
@@ -36,8 +36,8 @@ class AuthController extends Controller
             if (Auth::user()->role !== 'admin') {
                 Auth::logout();
                 return back()->withErrors([
-                    'email' => 'Akun ini tidak memiliki akses admin.',
-                ])->onlyInput('email');
+                    'id_karyawan' => 'Akun ini tidak memiliki akses admin.',
+                ])->onlyInput('id_karyawan');
             }
 
             $request->session()->regenerate();
@@ -45,8 +45,8 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'Email atau kata sandi tidak valid.',
-        ])->onlyInput('email');
+            'id_karyawan' => 'Username atau kata sandi tidak valid.',
+        ])->onlyInput('id_karyawan');
     }
 
     /**

@@ -13,6 +13,7 @@ class Transaction extends Model
         'ticket_id', 'doc_number', 'type', 'borrow_type',
         'nama_pengaju', 'department', 'no_wa',
         'status', 'validated_by', 'validated_at', 'catatan_admin',
+        'spv_name', 'hrd_name', 'keterangan', 'alamat_tujuan',
     ];
 
     protected $casts = [
@@ -44,11 +45,12 @@ class Transaction extends Model
     public static function generateDocNumber(string $type): string
     {
         $prefix = match($type) {
-            'serah_terima' => 'BAST/ST',
-            'peminjaman'   => 'BAST/PM',
-            'penukaran'    => 'BAST/PN',
-            'pengembalian' => 'BAST/KB',
-            default        => 'BAST/XX',
+            'serah_terima'  => 'BAST/ST',
+            'peminjaman'    => 'BAST/PM',
+            'penukaran'     => 'BAST/PN',
+            'pengembalian'  => 'BAST/KB',
+            'barang_keluar' => 'BAST/BK',
+            default         => 'BAST/XX',
         };
         $year  = now()->year;
         

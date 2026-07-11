@@ -7,14 +7,6 @@
         $baseUrl = url('');
     @endphp
 
-    {{-- Flash Success --}}
-    @if(session('success'))
-    <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
-         class="fixed top-5 right-5 z-[100] flex items-center gap-2 bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-lg text-sm font-semibold">
-        <i data-lucide="check-circle" class="w-4 h-4"></i>
-        {{ session('success') }}
-    </div>
-    @endif
 
     <div x-data="tiketApp" class="flex flex-col h-full">
       
@@ -182,7 +174,7 @@
                     <h3 class="font-bold text-slate-800">Buat Tiket Baru</h3>
                     <button @click="openModal = false" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
                 </div>
-                <div class="p-6">
+                <div class="p-4 md:p-6">
                     <p class="text-sm text-slate-500 mb-5">Link form tiket unik akan tersimpan ke database dan siap dibagikan ke karyawan.</p>
                     <form action="{{ route('ticket.store') }}" method="POST" class="space-y-4">
                         @csrf
@@ -229,7 +221,7 @@
     <div x-show="openConfirmModal" 
          class="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4" 
          style="display: none;">
-        <div @click.away="openConfirmModal = false" class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-fade-in text-center p-6">
+        <div @click.away="openConfirmModal = false" class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-fade-in text-center p-4 md:p-6">
             <div class="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i data-lucide="alert-triangle" class="w-8 h-8 text-rose-500"></i>
             </div>
@@ -247,7 +239,7 @@
     <div x-show="openPinModal" 
          class="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4" 
          style="display: none;">
-        <div @click.away="openPinModal = false" class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-fade-in text-center p-6">
+        <div @click.away="openPinModal = false" class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-fade-in text-center p-4 md:p-6">
             <div class="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i data-lucide="lock" class="w-8 h-8 text-rose-500"></i>
             </div>

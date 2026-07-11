@@ -43,6 +43,11 @@ class UserTicketController extends Controller
                 'spv_name' => ['required', 'string'],
                 'hrd_name' => ['required', 'string'],
                 'luar_items' => ['required', 'array', 'min:1'],
+                'team_leader' => ['nullable', 'string', 'max:255'],
+                'nik_ktp'     => ['nullable', 'string', 'max:50'],
+                'alamat_ktp'  => ['nullable', 'string'],
+                'domisili'    => ['nullable', 'string'],
+                'ruangan'     => ['nullable', 'string', 'max:100'],
             ]);
             $hasItem = true;
         } else {
@@ -63,6 +68,14 @@ class UserTicketController extends Controller
 
         $extraData = null;
         if ($ticket->type === 'serah_terima') {
+            $extraData = [
+                'nama_tl'      => $request->input('team_leader'),
+                'no_ktp'       => $request->input('nik_ktp'),
+                'alamat_ktp'   => $request->input('alamat_ktp'),
+                'domisili'     => $request->input('domisili'),
+                'ruangan'      => $request->input('ruangan'),
+            ];
+        } elseif ($ticket->type === 'peminjaman' && $ticket->borrow_type === 'luar') {
             $extraData = [
                 'nama_tl'      => $request->input('team_leader'),
                 'no_ktp'       => $request->input('nik_ktp'),

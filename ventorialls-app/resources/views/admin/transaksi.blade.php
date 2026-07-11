@@ -233,11 +233,23 @@
                                     </button>
                                 </td>
                                 <td class="px-5 py-3 text-center">
-                                    <template x-if="item.items_data.length > 0">
-                                        <button @click="selectedTx = item; openReturnModal = true" class="inline-flex items-center text-emerald-600 hover:bg-emerald-50 rounded-lg px-2.5 py-1 transition-colors text-xs font-bold border border-emerald-200 bg-white shadow-sm" title="Kembalikan Barang">
-                                            <i data-lucide="corner-down-left" class="w-3.5 h-3.5 mr-1"></i> Retur
-                                        </button>
-                                    </template>
+                                    <div class="flex items-center justify-center space-x-2">
+                                        <template x-if="item.items_data.length > 0">
+                                            <button @click="selectedTx = item; openReturnModal = true" class="inline-flex items-center text-emerald-600 hover:bg-emerald-50 rounded-lg px-2.5 py-1 transition-colors text-xs font-bold border border-emerald-200 bg-white shadow-sm" title="Kembalikan Barang">
+                                                <i data-lucide="corner-down-left" class="w-3.5 h-3.5 mr-1"></i> Retur
+                                            </button>
+                                        </template>
+                                        <template x-if="subTabPeminjaman === 'aktif_luar'">
+                                            <div class="flex items-center space-x-2">
+                                                <button @click="selectedTx = item; showHistoryModal = true" class="inline-flex items-center text-slate-600 hover:bg-slate-50 rounded-lg px-2.5 py-1 transition-colors text-xs font-bold border border-slate-200 bg-white shadow-sm" title="Detail Hak Bawa Pulang">
+                                                    <i data-lucide="eye" class="w-3.5 h-3.5 mr-1"></i> Detail
+                                                </button>
+                                                <a :href="'/workspaceinventory/transaksi/mptb/' + item.id + '/print'" target="_blank" class="inline-flex items-center text-[#1d4ed8] hover:bg-blue-50 rounded-lg px-2.5 py-1 transition-colors text-xs font-bold border border-blue-200 bg-white shadow-sm" title="Cetak Surat Bawa Pulang MPTB">
+                                                    <i data-lucide="printer" class="w-3.5 h-3.5 mr-1"></i> Cetak
+                                                </a>
+                                            </div>
+                                        </template>
+                                    </div>
                                 </td>
                             </tr>
                         </template>
@@ -608,16 +620,25 @@
                             
                             <div class="space-y-2 mb-4">
                                 <template x-for="item in karyawanItems" :key="item.sn || item.id">
-                                    <label class="flex items-center space-x-3 p-3 border border-slate-200 bg-white rounded-xl cursor-pointer hover:border-[#1d4ed8] transition-colors">
-                                        <input type="checkbox" name="luar_items[]" :value="item.sn || item.merk" class="w-4 h-4 text-[#1d4ed8] border-slate-300 rounded focus:ring-[#1d4ed8]">
+                                    <label class="flex items-center space-x-3 p-3 border border-slate-200 bg-white rounded-xl transition-colors"
+                                           :class="item.hak_bawa_pulang ? 'opacity-50 cursor-not-allowed bg-slate-50' : 'cursor-pointer hover:border-[#1d4ed8]'">
+                                        <input type="checkbox" name="luar_items[]" :value="item.sn || item.merk" class="w-4 h-4 text-[#1d4ed8] border-slate-300 rounded focus:ring-[#1d4ed8]" :disabled="item.hak_bawa_pulang">
                                         <div class="flex flex-col">
                                             <span class="text-sm font-bold text-slate-700" x-text="item.jenis"></span>
                                             <span class="text-xs font-mono text-[#1d4ed8]" x-text="item.sn || item.merk"></span>
+                                        </div>
+                                        <div x-show="item.hak_bawa_pulang" class="ml-auto" x-cloak>
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-200 text-slate-500">
+                                                Sudah Bawa Pulang
+                                            </span>
                                         </div>
                                     </label>
                                 </template>
                                 <div x-show="karyawanItems.length === 0" class="p-3 bg-rose-50 text-rose-600 text-xs rounded-xl border border-rose-100">
                                     Karyawan ini belum meminjam aset apapun. Tidak ada aset yang bisa dibawa keluar.
+                                </div>
+                                <div x-show="karyawanItems.length > 0 && !karyawanItems.some(i => !i.hak_bawa_pulang)" class="p-3 bg-amber-50 text-amber-600 text-xs rounded-xl border border-amber-100">
+                                    Semua aset aktif Karyawan ini sudah memiliki status Hak Bawa Pulang.
                                 </div>
                             </div>
 
@@ -635,7 +656,10 @@
                     </div>
 
                     <div class="flex justify-end pt-4" x-show="karyawanFound && showInputForm" style="display:none;">
-                        <button type="submit" class="bg-gradient-to-br from-[#1d4ed8] to-[#3b82f6] hover:bg-[#1e40af] transition-colors text-white px-6 py-2.5 rounded-xl font-medium shadow-soft text-sm">
+                        <button type="submit" 
+                                :disabled="borrowType === 'luar' && (!karyawanItems.length || !karyawanItems.some(i => !i.hak_bawa_pulang))"
+                                :class="borrowType === 'luar' && (!karyawanItems.length || !karyawanItems.some(i => !i.hak_bawa_pulang)) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#1e40af]'"
+                                class="bg-gradient-to-br from-[#1d4ed8] to-[#3b82f6] transition-colors text-white px-6 py-2.5 rounded-xl font-medium shadow-soft text-sm">
                             Simpan Peminjaman
                         </button>
                     </div>

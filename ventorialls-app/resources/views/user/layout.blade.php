@@ -21,11 +21,11 @@
             <div class="flex items-center justify-between h-16">
                 <!-- Logo -->
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-[#1d4ed8] to-[#3b82f6] rounded-xl flex items-center justify-center text-white shadow-sm border border-[#1d4ed8]">
-                        <i data-lucide="box" class="w-5 h-5"></i>
+                    <div class="flex items-center justify-center">
+                        <img src="{{ asset('image/logo-ventorialls-2.png') }}" alt="Ventorialls Logo" class="h-8 w-auto object-contain drop-shadow-sm">
                     </div>
                     <div>
-                        <h1 class="font-bold text-slate-800 leading-tight">Ventorialls</h1>
+                        <h1 class="font-medium text-slate-800 leading-tight">Ventorialls</h1>
                         <p class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Karyawan Portal</p>
                     </div>
                 </div>
@@ -101,6 +101,27 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
+
+            @if(session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: '{{ session('success') }}',
+                    timer: 3000,
+                    showConfirmButton: false,
+                    position: 'center'
+                });
+            @endif
+
+            @if($errors->any())
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validasi Gagal!',
+                    html: '{!! implode("<br>", $errors->all()) !!}',
+                    confirmButtonColor: '#1d4ed8',
+                    position: 'center'
+                });
+            @endif
         });
     </script>
     @stack('scripts')

@@ -1,12 +1,4 @@
 <x-layout active="karyawan" headerTitle="Manajemen Karyawan">
-    {{-- Flash Success --}}
-    @if(session('success'))
-    <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
-         class="fixed top-5 right-5 z-[100] flex items-center gap-2 bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-lg text-sm font-semibold">
-        <i data-lucide="check-circle" class="w-4 h-4"></i>
-        {{ session('success') }}
-    </div>
-    @endif
     <div x-data="karyawanApp">
         <!-- Top Action Bar -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -132,7 +124,7 @@
                                 </td>
                                 <td class="px-5 py-3 text-center">
                                     <div class="flex items-center justify-center space-x-2">
-                                        <button type="button" class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all shadow-sm group" title="Cetak Profil & Tanggungan Aset" onclick="window.print()">
+                                        <button type="button" class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all shadow-sm group" title="Cetak Profil & Tanggungan Aset" @click="window.open('/workspaceinventory/karyawan/' + item.id + '/print', '_blank')">
                                             <i data-lucide="printer" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
                                         </button>
                                         <button @click="viewDetail(item)" type="button" class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all shadow-sm group" title="Lihat Detail Karyawan">
@@ -198,7 +190,7 @@
                             <td class="px-5 py-3 text-center">
                                 <form action="{{ route('karyawan.restore', $trashed->id) }}" method="POST" class="inline-block">
                                     @csrf
-                                    <button type="submit" class="flex items-center justify-center bg-emerald-50 border border-emerald-200 text-emerald-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100 transition-colors shadow-sm" title="Pulihkan Data" onclick="return confirm('Apakah Anda yakin ingin memulihkan karyawan ini?')">
+                                    <button type="button" onclick="confirmRestore(this.closest('form'))" class="flex items-center justify-center bg-emerald-50 border border-emerald-200 text-emerald-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100 transition-colors shadow-sm" title="Pulihkan Data">
                                         <i data-lucide="refresh-cw" class="w-3.5 h-3.5 mr-1.5"></i>
                                         Pulihkan
                                     </button>
@@ -231,11 +223,11 @@
                     </button>
                 </div>
                 
-                <div class="p-5 overflow-y-auto flex-1">
+                <div class="p-4 md:p-5 overflow-y-auto flex-1">
                     <form :action="formAction" method="POST" class="space-y-4 flex flex-col h-full">
                         @csrf
                         <input type="hidden" name="_method" :value="formMethod">
-                        <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- Basic Karyawan Data -->
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap</label>
@@ -358,7 +350,7 @@
                     </button>
                 </div>
                 
-                <div class="p-6 overflow-y-auto flex-1 bg-white" x-show="selectedKaryawan">
+                <div class="p-4 md:p-6 overflow-y-auto flex-1 bg-white" x-show="selectedKaryawan">
                     <!-- Info Header -->
                     <div class="flex items-start gap-4 mb-6 pb-6 border-b border-slate-100">
                         <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xl uppercase shrink-0" 
@@ -421,7 +413,7 @@
     <div x-show="openPinModal" 
          class="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4" 
          style="display: none;">
-        <div @click.away="openPinModal = false" class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-fade-in text-center p-6">
+        <div @click.away="openPinModal = false" class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-fade-in text-center p-4 md:p-6">
             <div class="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i data-lucide="lock" class="w-8 h-8 text-rose-500"></i>
             </div>
@@ -571,4 +563,22 @@
         });
     </script>
     @endpush
+    <script>
+        function confirmRestore(form) {
+            Swal.fire({
+                title: 'Pulihkan Karyawan?',
+                text: 'Apakah Anda yakin ingin memulihkan karyawan ini?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Pulihkan!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        }
+    </script>
 </x-layout>

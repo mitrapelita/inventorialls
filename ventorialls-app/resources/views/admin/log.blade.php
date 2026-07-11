@@ -1,6 +1,6 @@
 <x-layout active="log" headerTitle="Log Aktivitas Sistem">
     <div x-data="logApp">
-        <div class="bg-white rounded-2xl shadow-soft p-5 border border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div class="bg-white rounded-2xl shadow-soft p-4 md:p-5 border border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div class="flex-1 min-w-0 mr-2 md:mr-6">
                 <h3 class="text-base font-bold text-slate-700 truncate">Histori Perubahan Data (CRUD)</h3>
                 <p class="text-xs text-slate-500 truncate">Mencatat semua aktivitas penambahan, pembaruan, penghapusan, dan validasi data di dalam sistem.</p>
@@ -79,7 +79,7 @@
         <div x-show="openPinModal" 
             class="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4" 
             style="display: none;">
-            <div @click.away="openPinModal = false" class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-fade-in text-center p-6">
+            <div @click.away="openPinModal = false" class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-fade-in text-center p-4 md:p-6">
                 <div class="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <i data-lucide="lock" class="w-8 h-8 text-rose-500"></i>
                 </div>

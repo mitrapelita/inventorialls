@@ -10,6 +10,7 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TransaksiController;
+use App\Http\Controllers\MutasiController;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 
@@ -24,6 +25,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Pencarian Data (AJAX) — Diakses frontend tanpa auth karena form tiket publik juga pakai ini
 Route::get('/workspaceinventory/api/search/karyawan',  [SearchController::class, 'searchKaryawan'])->name('api.search.karyawan');
 Route::get('/workspaceinventory/api/search/inventory', [SearchController::class, 'searchInventory'])->name('api.search.inventory');
+Route::get('/workspaceinventory/api/mutasi/rusak', [MutasiController::class, 'apiInventoryRusak'])->name('mutasi.api-rusak');
 
 // ─── Admin (Dilindungi Middleware Auth) ─────────────────────────────────────
 Route::prefix('workspaceinventory')->middleware('auth')->group(function () {
@@ -65,12 +67,21 @@ Route::prefix('workspaceinventory')->middleware('auth')->group(function () {
     Route::post('/transaksi/penukaran',     [TransaksiController::class, 'storePenukaran'])->name('transaksi.penukaran');
     Route::post('/transaksi/pengembalian',  [TransaksiController::class, 'storePengembalian'])->name('transaksi.pengembalian');
     Route::get('/transaksi/{transaction}/print', [TransaksiController::class, 'print'])->name('transaksi.print');
+    Route::get('/transaksi/mptb/{user}/print', [TransaksiController::class, 'printMptb'])->name('transaksi.print-mptb');
+    
+    // Mutasi Barang
+    Route::post('/mutasi/masuk', [MutasiController::class, 'storeMasuk'])->name('mutasi.masuk');
+    Route::post('/mutasi/keluar', [MutasiController::class, 'storeKeluar'])->name('mutasi.keluar');
+    Route::post('/mutasi/{transaction}/terima', [MutasiController::class, 'terimaKembali'])->name('mutasi.terima');
+    Route::delete('/mutasi/{transaction}', [MutasiController::class, 'destroyKeluar'])->name('mutasi.destroy');
+    Route::get('/mutasi/{transaction}/print', [MutasiController::class, 'printKeluar'])->name('mutasi.print');
     
     // ─── Bulk Delete (PIN Protected) ─────────────────────────────────────────
     Route::post('/master/bulk-delete',    [InventoryController::class, 'bulkDestroy'])->name('inventory.bulk-destroy');
     Route::post('/karyawan/bulk-delete',  [KaryawanController::class, 'bulkDestroy'])->name('karyawan.bulk-destroy');
     Route::post('/transaksi/bulk-delete', [TransaksiController::class, 'bulkDestroy'])->name('transaksi.bulk-destroy');
     Route::post('/tiket/bulk-delete',     [TicketController::class, 'bulkDestroy'])->name('ticket.bulk-destroy');
+    Route::post('/mutasi/bulk-delete',    [MutasiController::class, 'bulkDestroyKeluar'])->name('mutasi.bulk-destroy-keluar');
     Route::post('/log/bulk-delete', function(Request $request) {
         if ($request->pin !== '447747') return response()->json(['success' => false, 'message' => 'PIN salah!'], 403);
         ActivityLog::whereIn('id', $request->ids ?? [])->delete();

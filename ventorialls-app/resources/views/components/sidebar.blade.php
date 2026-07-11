@@ -21,8 +21,8 @@
     
     <div class="h-16 md:h-20 flex items-center px-6 md:px-6 border-b border-white/10 justify-between whitespace-nowrap">
         <div class="flex items-center">
-            <i data-lucide="package-search" class="w-7 h-7 md:w-8 md:h-8 mr-3 flex-shrink-0" :class="!isHovered && !sidebarOpen ? 'ml-0.5' : ''"></i>
-            <h1 class="text-lg md:text-xl font-bold tracking-wide transition-opacity duration-300" x-show="isHovered || sidebarOpen" x-transition.opacity>Ventorialls</h1>
+            <img src="{{ asset('image/logo-ventorialls-2.png') }}" class="h-7 w-auto mr-3 flex-shrink-0 object-contain drop-shadow-sm" :class="!isHovered && !sidebarOpen ? 'ml-1' : ''" alt="Ventorialls Logo">
+            <h1 class="text-lg md:text-xl font-medium tracking-wide transition-opacity duration-300" x-show="isHovered || sidebarOpen" x-transition.opacity>Ventorialls</h1>
         </div>
         <!-- Close button for mobile -->
         <button @click="sidebarOpen = false" class="md:hidden text-blue-200 hover:text-white focus:outline-none flex-shrink-0">
@@ -66,12 +66,22 @@
     </nav>
     
     <div class="p-4 border-t border-white/10 overflow-hidden whitespace-nowrap">
-        <div class="flex items-center py-2" :class="isHovered || sidebarOpen ? 'px-4' : 'justify-center'">
-            <div class="w-10 h-10 rounded-full bg-white text-[#1d4ed8] flex items-center justify-center font-bold text-lg flex-shrink-0" :class="isHovered || sidebarOpen ? 'mr-3' : ''">AD</div>
-            <div class="overflow-hidden" x-show="isHovered || sidebarOpen" x-transition.opacity>
-                <p class="text-sm font-semibold truncate">Admin Inventory</p>
-                <p class="text-xs text-blue-200 truncate">admin@ventorialls.co</p>
+        <div class="flex items-center justify-between py-2" :class="isHovered || sidebarOpen ? 'px-4' : 'justify-center'">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-white text-[#1d4ed8] flex items-center justify-center font-bold text-lg flex-shrink-0" :class="isHovered || sidebarOpen ? 'mr-3' : ''">
+                    {{ strtoupper(substr(auth()->user()->name ?? 'AD', 0, 2)) }}
+                </div>
+                <div class="overflow-hidden" x-show="isHovered || sidebarOpen" x-transition.opacity>
+                    <p class="text-sm font-semibold truncate">{{ auth()->user()->name ?? 'Admin Inventory' }}</p>
+                    <p class="text-xs text-blue-200 truncate">{{ auth()->user()->id_karyawan ?? 'admin' }}</p>
+                </div>
             </div>
+            <form method="POST" action="{{ route('logout') }}" x-show="isHovered || sidebarOpen" x-transition.opacity>
+                @csrf
+                <button type="submit" class="text-blue-200 hover:text-rose-400 transition-colors p-1" title="Logout">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                </button>
+            </form>
         </div>
     </div>
 </aside>

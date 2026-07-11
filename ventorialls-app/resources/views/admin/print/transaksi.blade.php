@@ -143,7 +143,7 @@
         <div class="signature-box">
             <p>Admin IT</p>
             <div class="signature-line">
-                ( {{ $transaction->validator->name ?? '....................................' }} )
+                ( {{ auth()->user()->name ?? $transaction->validator->name ?? '....................................' }} )
             </div>
         </div>
         <div class="signature-box">
