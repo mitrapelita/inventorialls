@@ -50,24 +50,8 @@
                   </div>
               </div>
           <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              <!-- Filter Tanggal (Khusus Serah Terima) -->
-              <input x-show="activeTab === 'serah-terima'" type="date" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 outline-none text-xs font-medium cursor-pointer hover:bg-slate-50 transition-colors shadow-sm">
-
-              <!-- Filter Kategori Dinamis -->
-              <select x-show="activeTab !== 'serah-terima'" x-model="filterKategori" class="px-3 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 outline-none text-xs font-medium cursor-pointer hover:bg-slate-50 transition-colors shadow-sm">
-                  <option value="semua">Semua Kategori</option>
-                  
-                  <!-- Opsi Filter untuk Peminjaman -->
-                  <template x-if="activeTab === 'peminjaman'">
-                      <option value="dipinjam">Status: Sedang Dipinjam</option>
-                  </template>
-                  <template x-if="activeTab === 'peminjaman'">
-                      <option value="dikembalikan">Status: Sudah Dikembalikan</option>
-                  </template>
-                  <template x-if="activeTab === 'peminjaman'">
-                      <option value="offboarding">Status: Offboarding</option>
-                  </template>
-              </select>
+              <!-- Filter Tanggal (Berlaku untuk semua tab) -->
+              <input x-model="filterDate" type="date" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 outline-none text-xs font-medium cursor-pointer hover:bg-slate-50 transition-colors shadow-sm">
               <button @click="openDeletePinModal('bulk')" :disabled="selectedIds.length === 0" class="px-3 py-2 rounded-lg text-xs font-medium transition-all shadow-sm flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed" :class="selectedIds.length > 0 ? 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200' : 'bg-slate-50 text-slate-400 border border-slate-200'">
                   <i data-lucide="trash-2" class="w-3.5 h-3.5 mr-1.5"></i>
                   Hapus <span x-show="selectedIds.length > 0" x-text="'(' + selectedIds.length + ')'" class="ml-1"></span>
@@ -99,7 +83,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    <template x-for="item in serahTerimaList" :key="item.doc">
+                    <template x-for="item in filteredSerahTerimaList" :key="item.doc">
                         <tr class="hover:bg-slate-50/50 transition-colors text-sm">
                             <td class="px-5 py-3 text-center">
                                 <input type="checkbox" class="rounded border-slate-300 text-rose-500 focus:ring-rose-500 cursor-pointer" :value="item.id" x-model="selectedIds">
@@ -184,7 +168,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
-                        <template x-for="item in pinjamList.filter(i => subTabPeminjaman === 'aktif_dalam' ? i.pinjam_dalam > 0 : i.pinjam_luar > 0)" :key="item.id">
+                        <template x-for="item in filteredPinjamList.filter(i => subTabPeminjaman === 'aktif_dalam' ? i.pinjam_dalam > 0 : i.pinjam_luar > 0)" :key="item.id">
                             <tr class="hover:bg-slate-50/50 transition-colors text-sm">
                                 <td class="px-5 py-3 text-center">
                                     <input type="checkbox" class="rounded border-slate-300 text-rose-500 focus:ring-rose-500 cursor-pointer" :value="item.id" x-model="selectedIds">
@@ -271,7 +255,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
-                        <template x-for="item in historyPeminjamanList" :key="item.id">
+                        <template x-for="item in filteredHistoryPeminjamanList" :key="item.id">
                             <tr class="hover:bg-slate-50/50 transition-colors text-sm">
                                 <td class="px-5 py-3 font-mono text-[#1d4ed8]" x-text="item.doc"></td>
                                 <td class="px-5 py-3" x-text="item.tgl"></td>
@@ -342,7 +326,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    <template x-for="item in penukaranList" :key="item.doc">
+                    <template x-for="item in filteredPenukaranList" :key="item.doc">
                         <tr class="hover:bg-slate-50/50 transition-colors text-sm">
                             <td class="px-5 py-3 text-center">
                                 <input type="checkbox" class="rounded border-slate-300 text-rose-500 focus:ring-rose-500 cursor-pointer" :value="item.id" x-model="selectedIds">
@@ -645,11 +629,21 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-200">
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-700 mb-1">Nama SPV (Atasan) <span class="text-rose-500">*</span></label>
-                                    <input type="text" name="spv_name" placeholder="Ketik nama SPV..." class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8]" :required="borrowType === 'luar'">
+                                    <select name="spv_name" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8] cursor-pointer" :required="borrowType === 'luar'">
+                                        <option value="" disabled selected>Pilih SPV...</option>
+                                        @foreach($approvers->where('role', 'SPV') as $spv)
+                                            <option value="{{ $spv->name }}">{{ $spv->name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-700 mb-1">Nama HRD <span class="text-rose-500">*</span></label>
-                                    <input type="text" name="hrd_name" placeholder="Ketik nama HRD..." class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8]" :required="borrowType === 'luar'">
+                                    <select name="hrd_name" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8] cursor-pointer" :required="borrowType === 'luar'">
+                                        <option value="" disabled selected>Pilih HRD...</option>
+                                        @foreach($approvers->where('role', 'HRD') as $hrd)
+                                            <option value="{{ $hrd->name }}">{{ $hrd->name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -1279,6 +1273,7 @@
                 showHistoryModal: false,
                 subTipe: 'pinjam_internal',
                 searchQuery: '',
+                filterDate: '',
                 filterKategori: 'semua',
                 
                 searchKaryawan: '',
@@ -1317,6 +1312,7 @@
                     'id' => $t->id,
                     'doc' => $t->doc_number,
                     'tanggal' => $t->created_at->format('d M Y'),
+                    'raw_tanggal' => $t->created_at->format('Y-m-d'),
                     'penerima' => $t->nama_pengaju,
                     'dept' => $t->department,
                     'items' => $t->items->count(),
@@ -1330,6 +1326,7 @@
                     'dept' => $t->department,
                     'barang' => $t->items->count() . ' Barang',
                     'tgl' => $t->created_at->format('d M Y'),
+                    'raw_tanggal' => $t->created_at->format('Y-m-d'),
                     'status' => $t->status,
                     'type' => $t->type,
                     'items_data' => $t->items->map($mapItems),
@@ -1338,6 +1335,7 @@
                     'id' => $t->id,
                     'doc' => $t->doc_number,
                     'tanggal' => $t->created_at->format('d M Y'),
+                    'raw_tanggal' => $t->created_at->format('Y-m-d'),
                     'pengguna' => $t->nama_pengaju,
                     'sn_masuk' => $t->items->pluck('sn_lama')->filter()->implode(', ') ?: '-',
                     'sn_keluar' => $t->items->pluck('no_aset')->filter()->implode(', ') ?: '-',
@@ -1359,10 +1357,58 @@
                 deleteProcessing: false,
                 deleteItem: null,
                 get activeList() {
-                    if (this.activeTab === 'serah-terima') return this.serahTerimaList;
-                    if (this.activeTab === 'peminjaman') return this.pinjamList;
-                    if (this.activeTab === 'penukaran') return this.penukaranList;
+                    if (this.activeTab === 'serah-terima') return this.filteredSerahTerimaList;
+                    if (this.activeTab === 'peminjaman') return this.filteredPinjamList;
+                    if (this.activeTab === 'penukaran') return this.filteredPenukaranList;
                     return [];
+                },
+                get filteredSerahTerimaList() {
+                    return this.serahTerimaList.filter(item => {
+                        let match = true;
+                        if (this.searchQuery) {
+                            const q = this.searchQuery.toLowerCase();
+                            match = item.doc.toLowerCase().includes(q) || item.penerima.toLowerCase().includes(q);
+                        }
+                        if (match && this.filterDate) {
+                            match = item.raw_tanggal === this.filterDate;
+                        }
+                        return match;
+                    });
+                },
+                get filteredPinjamList() {
+                    return this.pinjamList.filter(item => {
+                        if (this.searchQuery) {
+                            const q = this.searchQuery.toLowerCase();
+                            return item.peminjam.toLowerCase().includes(q) || item.dept.toLowerCase().includes(q);
+                        }
+                        return true;
+                    });
+                },
+                get filteredHistoryPeminjamanList() {
+                    return this.historyPeminjamanList.filter(item => {
+                        let match = true;
+                        if (this.searchQuery) {
+                            const q = this.searchQuery.toLowerCase();
+                            match = item.doc.toLowerCase().includes(q) || item.peminjam.toLowerCase().includes(q);
+                        }
+                        if (match && this.filterDate) {
+                            match = item.raw_tanggal === this.filterDate;
+                        }
+                        return match;
+                    });
+                },
+                get filteredPenukaranList() {
+                    return this.penukaranList.filter(item => {
+                        let match = true;
+                        if (this.searchQuery) {
+                            const q = this.searchQuery.toLowerCase();
+                            match = item.doc.toLowerCase().includes(q) || item.pengguna.toLowerCase().includes(q);
+                        }
+                        if (match && this.filterDate) {
+                            match = item.raw_tanggal === this.filterDate;
+                        }
+                        return match;
+                    });
                 },
                 get allSelected() {
                     const list = this.activeList;

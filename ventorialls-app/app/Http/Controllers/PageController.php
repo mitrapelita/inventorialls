@@ -155,11 +155,13 @@ class PageController extends Controller
         ];
 
         // Fetch history peminjaman/pengembalian
-        $historyPeminjaman = Transaction::with('items')
+        $historyPeminjaman = \App\Models\Transaction::with('items.inventory')
             ->whereIn('type', ['peminjaman', 'pengembalian'])
             ->latest()->get();
 
-        return view('admin.transaksi', compact('serahTerima', 'activeBorrowers', 'penukaran', 'historyPeminjaman', 'karyawans', 'mapItems'));
+        $approvers = \App\Models\Approver::all();
+
+        return view('admin.transaksi', compact('serahTerima', 'activeBorrowers', 'penukaran', 'historyPeminjaman', 'karyawans', 'mapItems', 'approvers'));
     }
 
     public function mutasi()
@@ -219,7 +221,8 @@ class PageController extends Controller
                 ->where('status', 'menunggu_diisi')
                 ->first();
         }
-        return view('user.tiket', compact('type', 'id', 'ticket'));
+        $approvers = \App\Models\Approver::all();
+        return view('user.tiket', compact('type', 'id', 'ticket', 'approvers'));
     }
 
     // ─── Halaman Histori Barang ────────────────────────────────────────────────

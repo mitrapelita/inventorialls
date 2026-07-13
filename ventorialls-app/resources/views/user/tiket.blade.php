@@ -357,11 +357,21 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-200">
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-700 mb-1">Nama SPV (Atasan) <span class="text-rose-500">*</span></label>
-                                    <input type="text" name="spv_name" placeholder="Ketik nama SPV..." class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8]" required>
+                                    <select name="spv_name" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8] cursor-pointer" required>
+                                        <option value="" disabled selected>Pilih SPV...</option>
+                                        @foreach($approvers->where('role', 'SPV') as $spv)
+                                            <option value="{{ $spv->name }}">{{ $spv->name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-700 mb-1">Nama HRD <span class="text-rose-500">*</span></label>
-                                    <input type="text" name="hrd_name" placeholder="Ketik nama HRD..." class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8]" required>
+                                    <select name="hrd_name" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8] cursor-pointer" required>
+                                        <option value="" disabled selected>Pilih HRD...</option>
+                                        @foreach($approvers->where('role', 'HRD') as $hrd)
+                                            <option value="{{ $hrd->name }}">{{ $hrd->name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
                         </div>

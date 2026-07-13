@@ -41,6 +41,16 @@ Route::prefix('workspaceinventory')->middleware('auth')->group(function () {
     Route::get('/log',       [PageController::class, 'log'])->name('log');
     Route::get('/histori',   [PageController::class, 'historiBarang'])->name('histori');
 
+    // Pengaturan Admin
+    Route::get('/pengaturan', [App\Http\Controllers\SettingController::class, 'index'])->name('pengaturan');
+    Route::post('/pengaturan', [App\Http\Controllers\SettingController::class, 'store'])->name('pengaturan.store');
+    Route::put('/pengaturan/{user}', [App\Http\Controllers\SettingController::class, 'update'])->name('pengaturan.update');
+    Route::delete('/pengaturan/{user}', [App\Http\Controllers\SettingController::class, 'destroy'])->name('pengaturan.destroy');
+
+    Route::post('/pengaturan/approver', [App\Http\Controllers\SettingController::class, 'storeApprover'])->name('pengaturan.approver.store');
+    Route::put('/pengaturan/approver/{approver}', [App\Http\Controllers\SettingController::class, 'updateApprover'])->name('pengaturan.approver.update');
+    Route::delete('/pengaturan/approver/{approver}', [App\Http\Controllers\SettingController::class, 'destroyApprover'])->name('pengaturan.approver.destroy');
+
     // Manajemen Tiket
     Route::get('/tiket',             function () { return view('admin.tiket'); })->name('admin-tiket');
     Route::post('/tiket',            [TicketController::class, 'store'])->name('ticket.store');
@@ -73,6 +83,7 @@ Route::prefix('workspaceinventory')->middleware('auth')->group(function () {
     Route::post('/mutasi/masuk', [MutasiController::class, 'storeMasuk'])->name('mutasi.masuk');
     Route::post('/mutasi/keluar', [MutasiController::class, 'storeKeluar'])->name('mutasi.keluar');
     Route::post('/mutasi/{transaction}/terima', [MutasiController::class, 'terimaKembali'])->name('mutasi.terima');
+    Route::delete('/mutasi/masuk/{id}', [MutasiController::class, 'destroyMasuk'])->name('mutasi.destroy-masuk');
     Route::delete('/mutasi/{transaction}', [MutasiController::class, 'destroyKeluar'])->name('mutasi.destroy');
     Route::get('/mutasi/{transaction}/print', [MutasiController::class, 'printKeluar'])->name('mutasi.print');
     
@@ -81,6 +92,9 @@ Route::prefix('workspaceinventory')->middleware('auth')->group(function () {
     Route::post('/karyawan/bulk-delete',  [KaryawanController::class, 'bulkDestroy'])->name('karyawan.bulk-destroy');
     Route::post('/transaksi/bulk-delete', [TransaksiController::class, 'bulkDestroy'])->name('transaksi.bulk-destroy');
     Route::post('/tiket/bulk-delete',     [TicketController::class, 'bulkDestroy'])->name('ticket.bulk-destroy');
+    Route::post('/pengaturan/bulk-delete',[App\Http\Controllers\SettingController::class, 'bulkDestroy'])->name('pengaturan.bulk-destroy');
+    Route::post('/pengaturan/approver/bulk-delete', [App\Http\Controllers\SettingController::class, 'bulkDestroyApprover'])->name('pengaturan.approver.bulk-destroy');
+    Route::post('/mutasi/masuk/bulk-delete', [MutasiController::class, 'bulkDestroyMasuk'])->name('mutasi.bulk-destroy-masuk');
     Route::post('/mutasi/bulk-delete',    [MutasiController::class, 'bulkDestroyKeluar'])->name('mutasi.bulk-destroy-keluar');
     Route::post('/log/bulk-delete', function(Request $request) {
         if ($request->pin !== '447747') return response()->json(['success' => false, 'message' => 'PIN salah!'], 403);

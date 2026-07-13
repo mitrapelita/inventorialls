@@ -361,7 +361,7 @@
                         <!-- Left: Info Detail (3 cols) -->
                         <div class="md:col-span-3 space-y-4">
                             <div class="flex items-center mb-6">
-                                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4 flex-shrink-0"
+                                <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4 flex-shrink-0"
                                     :class="{
                                         'bg-blue-50 text-blue-600': (selectedData?.jenis || '').toLowerCase() === 'laptop',
                                         'bg-amber-50 text-amber-600': (selectedData?.jenis || '').toLowerCase() === 'charger',

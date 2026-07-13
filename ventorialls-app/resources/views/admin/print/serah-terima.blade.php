@@ -372,7 +372,7 @@
         <div class="signature-box">
             <p><strong>Mengetahui,</strong></p>
             <div class="signature-line">
-                {{ auth()->user()->name }}
+                &nbsp;
             </div>
             <div class="signature-title">HRD</div>
         </div>

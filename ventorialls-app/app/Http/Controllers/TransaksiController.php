@@ -427,6 +427,12 @@ class TransaksiController extends Controller
     public function print(Transaction $transaction)
     {
         $transaction->load('items');
+        
+        if ($transaction->type === 'serah_terima') {
+            $user = \App\Models\User::where('name', $transaction->nama_pengaju)->first();
+            return view('admin.print.serah-terima', compact('transaction', 'user'));
+        }
+        
         return view('admin.print.transaksi', compact('transaction'));
     }
 
@@ -437,7 +443,8 @@ class TransaksiController extends Controller
             ->get();
             
         $latestTx = \App\Models\Transaction::where('nama_pengaju', $user->name)
-            ->where('type', 'pinjam_eksternal')
+            ->where('type', 'peminjaman')
+            ->where('borrow_type', 'luar')
             ->latest()
             ->first();
             

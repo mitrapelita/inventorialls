@@ -98,9 +98,9 @@
       </div>
 
       <!-- Tab 2: Validasi Fisik & Tools -->
-      <div x-show="activeTab === 'fisik'" class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6" style="display: none;">
+      <div x-show="activeTab === 'fisik'" class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 min-w-0" style="display: none;">
         <!-- Input Panel -->
-        <div class="col-span-1 lg:col-span-1">
+        <div class="col-span-1 lg:col-span-1 min-w-0">
           <div class="bg-white rounded-2xl shadow-soft p-4 md:p-5 border border-slate-100">
             <h4 class="text-sm md:text-base font-bold text-slate-700 mb-4 flex items-center">
               <i data-lucide="keyboard" class="w-4 h-4 mr-2 text-[#1d4ed8]"></i>
@@ -124,7 +124,7 @@
         </div>
 
         <!-- Result Panel -->
-        <div class="col-span-1 lg:col-span-2">
+        <div class="col-span-1 lg:col-span-2 min-w-0">
           <!-- Empty State -->
           <div x-show="!assetFound && !searched" class="bg-slate-100 rounded-2xl border border-slate-200 border-dashed h-full min-h-[250px] md:min-h-[300px] flex flex-col items-center justify-center text-slate-400 p-4 text-center">
             <i data-lucide="box" class="w-12 h-12 md:w-16 md:h-16 mb-3 md:mb-4 text-slate-300"></i>
@@ -191,10 +191,18 @@
 
     <!-- MODAL LENGKAPI DATA -->
     <div x-show="showLengkapiModal" 
+         @click="showLengkapiModal = false"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
          class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4" 
-         style="display: none;"
-         x-transition>
-        <div @click.away="showLengkapiModal = false" class="bg-white w-full max-w-2xl flex flex-col rounded-2xl shadow-2xl overflow-hidden animate-fade-in max-h-[90vh]">
+         style="display: none;">
+        
+        <div class="bg-white w-full max-w-4xl rounded-2xl shadow-xl flex flex-col max-h-[90vh] overflow-hidden"
+             @click.stop>
             <div class="px-4 py-3 md:px-6 md:py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-2xl">
                 <div>
                     <h3 class="text-base md:text-lg font-bold text-slate-800 flex items-center">
@@ -336,12 +344,15 @@
                                 <div class="flex space-x-2">
                                     <input type="text" name="items[{{ $key }}][no_aset]" x-model="formData.items.{{ $key }}.no_aset"
                                         placeholder="Input No. Aset {{ $label }}..."
-                                        class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8] focus:bg-white transition-all">
+                                        :readonly="formData.items.{{ $key }}.disabled"
+                                        :class="formData.items.{{ $key }}.disabled ? 'bg-slate-200 cursor-not-allowed opacity-70' : 'bg-slate-50 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8] focus:bg-white'"
+                                        class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none transition-all">
                                     <!-- Hidden foto input -->
                                     <input type="file" name="items[{{ $key }}][foto]" accept="image/*" capture="environment"
-                                        class="hidden" id="cam-st-{{ $key }}">
+                                        class="hidden" id="cam-st-{{ $key }}" :disabled="formData.items.{{ $key }}.disabled">
                                     <button type="button" onclick="document.getElementById('cam-st-{{ $key }}').click()"
                                         title="Foto No. Aset"
+                                        x-show="!formData.items.{{ $key }}.disabled"
                                         class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-colors shrink-0 flex items-center justify-center shadow-sm border border-slate-200">
                                         <i data-lucide="camera" class="w-4 h-4"></i>
                                     </button>
@@ -623,13 +634,13 @@
               domisili: '',
               ruangan: '',
               items: {
-                  laptop: { no_aset: '' },
-                  charger: { no_aset: '' },
-                  mouse: { no_aset: '' },
-                  lan_extender: { no_aset: '' },
-                  headset: { no_aset: '' },
-                  hp_root: { no_aset: '' },
-                  audio_jack: { no_aset: '' },
+                  laptop: { no_aset: '', disabled: false },
+                  charger: { no_aset: '', disabled: false },
+                  mouse: { no_aset: '', disabled: false },
+                  lan_extender: { no_aset: '', disabled: false },
+                  headset: { no_aset: '', disabled: false },
+                  hp_root: { no_aset: '', disabled: false },
+                  audio_jack: { no_aset: '', disabled: false },
               }
           },
           searchKaryawanName: '',
@@ -647,7 +658,7 @@
               this.confirmType = type;
               this.pendingForm = formEl;
               this.openConfirmModal = true;
-              this.$nextTick(() => { if(window.lucide) window.lucide.createIcons(); });
+              this.$nextTick(() => { if(window.lucide) window.lucide.createIcons({ icons: window.lucide.icons }); });
           },
           submitPending() {
               if(this.pendingForm) {
@@ -658,43 +669,75 @@
               this.selectedTx = item;
               this.checkedStatus = {}; // reset
               this.showDetailModal = true;
-              this.$nextTick(() => { if(window.lucide) window.lucide.createIcons(); });
+              this.$nextTick(() => { if(window.lucide) window.lucide.createIcons({ icons: window.lucide.icons }); });
           },
-          async cariKaryawan() {
-              if(!this.searchKaryawanName) return;
-              try {
-                  const response = await fetch(`/workspaceinventory/api/search/karyawan?name=${encodeURIComponent(this.searchKaryawanName)}`);
-                  const result = await response.json();
-                  
-                  this.karyawanFound = true;
-                  
-                  if(result.found) {
-                      this.isKaryawanBaru = false;
-                      this.formData.pengguna = result.data.name;
-                      this.formData.kontak = result.data.kontak || '';
-                      this.formData.department = result.data.department || '';
-                      this.formData.nama_tl = result.data.nama_tl || '';
-                      this.formData.no_ktp = result.data.no_ktp || '';
-                      this.formData.alamat_ktp = result.data.alamat_ktp || '';
-                      this.formData.domisili = result.data.domisili || '';
-                      this.formData.ruangan = result.data.ruangan || '';
-                  } else {
-                      this.isKaryawanBaru = true;
-                      this.formData.pengguna = this.searchKaryawanName;
-                      this.formData.kontak = '';
-                      this.formData.department = '';
-                      this.formData.nama_tl = '';
-                      this.formData.no_ktp = '';
-                      this.formData.alamat_ktp = '';
-                      this.formData.domisili = '';
-                      this.formData.ruangan = '';
-                  }
-                  
-                  this.$nextTick(() => { if(window.lucide) window.lucide.createIcons(); });
-              } catch(e) {
-                  console.error(e);
-              }
-          },
+            async cariKaryawan() {
+                if(!this.searchKaryawanName) return;
+                try {
+                    const response = await fetch(`/workspaceinventory/api/search/karyawan?q=${encodeURIComponent(this.searchKaryawanName)}`);
+                    const result = await response.json();
+                    
+                    this.karyawanFound = true;
+                    
+                    if(result.found) {
+                        this.isKaryawanBaru = false;
+                        this.formData.pengguna = result.data.nama;
+                        this.formData.kontak = result.data.kontak || '';
+                        this.formData.department = result.data.department || '';
+                        this.formData.nama_tl = result.data.nama_tl || '';
+                        this.formData.no_ktp = result.data.no_ktp || '';
+                        this.formData.alamat_ktp = result.data.alamat_ktp || '';
+                        this.formData.domisili = result.data.domisili || '';
+                        this.formData.ruangan = result.data.ruangan || '';
+                        
+                        // Reset all items first
+                        Object.keys(this.formData.items).forEach(key => {
+                            this.formData.items[key].no_aset = '';
+                            this.formData.items[key].disabled = false;
+                        });
+                        
+                        // Populate existing items
+                        if (result.data.items && result.data.items.length > 0) {
+                            result.data.items.forEach(item => {
+                                let key = '';
+                                const jenis = (item.jenis || '').toLowerCase();
+                                if (jenis.includes('laptop')) key = 'laptop';
+                                else if (jenis.includes('charger')) key = 'charger';
+                                else if (jenis.includes('mouse')) key = 'mouse';
+                                else if (jenis.includes('lan')) key = 'lan_extender';
+                                else if (jenis.includes('headset')) key = 'headset';
+                                else if (jenis.includes('hp')) key = 'hp_root';
+                                else if (jenis.includes('audio') || jenis.includes('jack')) key = 'audio_jack';
+                                
+                                if (key && this.formData.items[key]) {
+                                    this.formData.items[key].no_aset = item.sn || item.no_aset;
+                                    this.formData.items[key].disabled = true;
+                                }
+                            });
+                        }
+                    } else {
+                        this.isKaryawanBaru = true;
+                        this.formData.pengguna = this.searchKaryawanName;
+                        this.formData.kontak = '';
+                        this.formData.department = '';
+                        this.formData.nama_tl = '';
+                        this.formData.no_ktp = '';
+                        this.formData.alamat_ktp = '';
+                        this.formData.domisili = '';
+                        this.formData.ruangan = '';
+                        
+                        // Reset all items
+                        Object.keys(this.formData.items).forEach(key => {
+                            this.formData.items[key].no_aset = '';
+                            this.formData.items[key].disabled = false;
+                        });
+                    }
+                    
+                    this.$nextTick(() => { if(window.lucide) window.lucide.createIcons({ icons: window.lucide.icons }); });
+                } catch(e) {
+                    console.error(e);
+                }
+            },
           openLengkapiModal() {
               this.showLengkapiModal = true;
               this.searchKaryawanName = '';
@@ -705,6 +748,7 @@
               // Reset items
               for(let key in this.formData.items) {
                   this.formData.items[key].no_aset = '';
+                  this.formData.items[key].disabled = false;
               }
               
               // Prefill scanned SN into the correct category
@@ -767,7 +811,7 @@
                 } else {
                   this.checkedStatus[no_aset] = { loading: false, found: false, data: null, conflict: false };
                 }
-                this.$nextTick(() => { if(window.lucide) window.lucide.createIcons(); });
+                this.$nextTick(() => { if(window.lucide) window.lucide.createIcons({ icons: window.lucide.icons }); });
             } catch (error) {
                 this.checkedStatus[no_aset] = { loading: false, error: true, conflict: false };
             }
@@ -817,7 +861,7 @@
           },
           init() {
             this.$watch('showLengkapiModal', () => { 
-                this.$nextTick(() => { if(window.lucide) window.lucide.createIcons(); });
+                this.$nextTick(() => { if(window.lucide) window.lucide.createIcons({ icons: window.lucide.icons }); });
             });
             this.$nextTick(() => { if(window.lucide) window.lucide.createIcons({ icons: window.lucide.icons }); });
             this.$watch('activeTab', () => { 

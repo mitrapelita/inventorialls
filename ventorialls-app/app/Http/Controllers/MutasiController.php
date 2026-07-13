@@ -59,6 +59,38 @@ class MutasiController extends Controller
     }
 
     /**
+     * Hapus Satu Data Barang Masuk
+     */
+    public function destroyMasuk($id)
+    {
+        try {
+            $mutation = StockMutation::findOrFail($id);
+            $mutation->delete();
+            return response()->json(['success' => true, 'message' => 'Data Barang Masuk berhasil dihapus']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Hapus Beberapa Data Barang Masuk (Bulk Delete)
+     */
+    public function bulkDestroyMasuk(Request $request)
+    {
+        $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'exists:stock_mutations,id'
+        ]);
+
+        try {
+            StockMutation::whereIn('id', $request->ids)->delete();
+            return response()->json(['success' => true, 'message' => count($request->ids) . ' data berhasil dihapus']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Store Barang Keluar (Multi-select inventory, catat ke transactions & update status barang)
      */
     public function storeKeluar(Request $request)
