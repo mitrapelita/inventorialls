@@ -31,18 +31,21 @@
                 </div>
 
                 <!-- Desktop Navigation (Moved into header) -->
-                <div class="hidden md:flex bg-white rounded-2xl shadow-sm border border-slate-200 p-1.5 items-center justify-center mx-4 flex-1 max-w-lg">
-                    <a href="{{ route('user.dashboard') }}" class="flex-1 flex items-center justify-center py-2 rounded-xl text-[13px] font-semibold transition-all {{ request()->routeIs('user.dashboard') ? 'bg-blue-50 text-[#1d4ed8] shadow-sm border border-blue-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50' }}">
+                <div class="hidden md:flex bg-white rounded-2xl shadow-sm border border-slate-200 p-1.5 items-center justify-center mx-4 flex-1 max-w-3xl">
+                    <a href="{{ route('user.dashboard') }}" class="flex-1 flex items-center justify-center py-2 rounded-xl text-[13px] font-semibold whitespace-nowrap transition-all {{ request()->routeIs('user.dashboard') ? 'bg-blue-50 text-[#1d4ed8] shadow-sm border border-blue-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50' }}">
                         <i data-lucide="layout-grid" class="w-4 h-4 mr-1.5"></i> Beranda
                     </a>
-                    <a href="{{ route('user.serah-terima') }}" class="flex-1 flex items-center justify-center py-2 rounded-xl text-[13px] font-semibold transition-all {{ request()->routeIs('user.serah-terima') ? 'bg-blue-50 text-[#1d4ed8] shadow-sm border border-blue-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50' }}">
+                    <a href="{{ route('user.serah-terima') }}" class="flex-1 flex items-center justify-center py-2 rounded-xl text-[13px] font-semibold whitespace-nowrap transition-all {{ request()->routeIs('user.serah-terima') ? 'bg-blue-50 text-[#1d4ed8] shadow-sm border border-blue-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50' }}">
                         <i data-lucide="user-plus" class="w-4 h-4 mr-1.5"></i> Serah Terima
                     </a>
-                    <a href="{{ route('user.peminjaman') }}" class="flex-1 flex items-center justify-center py-2 rounded-xl text-[13px] font-semibold transition-all {{ request()->routeIs('user.peminjaman') ? 'bg-blue-50 text-[#1d4ed8] shadow-sm border border-blue-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50' }}">
+                    <a href="{{ route('user.peminjaman') }}" class="flex-1 flex items-center justify-center py-2 rounded-xl text-[13px] font-semibold whitespace-nowrap transition-all {{ request()->routeIs('user.peminjaman') ? 'bg-blue-50 text-[#1d4ed8] shadow-sm border border-blue-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50' }}">
                         <i data-lucide="repeat" class="w-4 h-4 mr-1.5"></i> Peminjaman
                     </a>
-                    <a href="{{ route('user.penukaran') }}" class="flex-1 flex items-center justify-center py-2 rounded-xl text-[13px] font-semibold transition-all {{ request()->routeIs('user.penukaran') ? 'bg-blue-50 text-[#1d4ed8] shadow-sm border border-blue-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50' }}">
+                    <a href="{{ route('user.penukaran') }}" class="flex-1 flex items-center justify-center py-2 rounded-xl text-[13px] font-semibold whitespace-nowrap transition-all {{ request()->routeIs('user.penukaran') ? 'bg-blue-50 text-[#1d4ed8] shadow-sm border border-blue-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50' }}">
                         <i data-lucide="refresh-cw" class="w-4 h-4 mr-1.5"></i> Penukaran
+                    </a>
+                    <a href="{{ route('user.cek-aset') }}" class="flex-1 flex items-center justify-center py-2 rounded-xl text-[13px] font-semibold whitespace-nowrap transition-all {{ request()->routeIs('user.cek-aset') ? 'bg-blue-50 text-[#1d4ed8] shadow-sm border border-blue-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50' }}">
+                        <i data-lucide="search" class="w-4 h-4 mr-1.5"></i> Cek Aset
                     </a>
                 </div>
 
@@ -90,6 +93,10 @@
         <a href="{{ route('user.penukaran') }}" class="flex flex-col items-center justify-center w-full py-3 {{ request()->routeIs('user.penukaran') ? 'text-[#1d4ed8]' : 'text-slate-500 hover:text-slate-800' }}">
             <i data-lucide="refresh-cw" class="w-5 h-5 mb-1 {{ request()->routeIs('user.penukaran') ? 'fill-blue-100' : '' }}"></i>
             <span class="text-[10px] font-semibold">Penukaran</span>
+        </a>
+        <a href="{{ route('user.cek-aset') }}" class="flex flex-col items-center justify-center w-full py-3 {{ request()->routeIs('user.cek-aset') ? 'text-[#1d4ed8]' : 'text-slate-500 hover:text-slate-800' }}">
+            <i data-lucide="search" class="w-5 h-5 mb-1 {{ request()->routeIs('user.cek-aset') ? 'fill-blue-100' : '' }}"></i>
+            <span class="text-[10px] font-semibold">Cek Aset</span>
         </a>
     </nav>
 

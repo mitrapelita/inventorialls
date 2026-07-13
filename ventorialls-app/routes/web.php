@@ -11,6 +11,7 @@ use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\MutasiController;
+use App\Http\Controllers\PublicValidationController;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 
@@ -19,8 +20,12 @@ Route::get('/', function () { return redirect()->route('user.dashboard'); });
 
 // ─── Autentikasi ────────────────────────────────────────────────────────────
 Route::get('/otoritasitinventory', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/otoritasitinventory', [AuthController::class, 'login'])->name('login.submit');
+Route::post('/otoritasitinventory', [AuthController::class, 'login'])->middleware('throttle:5,1')->name('login.submit');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Halaman Publik Validasi Fisik
+Route::get('/toolsvalidasipublic', [PublicValidationController::class, 'index'])->name('toolsvalidasipublic');
+Route::post('/toolsvalidasipublic/store', [PublicValidationController::class, 'store'])->name('public.validasi.store');
 
 // Pencarian Data (AJAX) — Diakses frontend tanpa auth karena form tiket publik juga pakai ini
 Route::get('/workspaceinventory/api/search/karyawan',  [SearchController::class, 'searchKaryawan'])->name('api.search.karyawan');
@@ -118,4 +123,5 @@ Route::prefix('user')->group(function () {
     Route::get('/serah-terima', [PageController::class, 'userSerahTerima'])->name('user.serah-terima');
     Route::get('/peminjaman',   [PageController::class, 'userPeminjaman'])->name('user.peminjaman');
     Route::get('/penukaran',    [PageController::class, 'userPenukaran'])->name('user.penukaran');
+    Route::get('/cek-aset',     [PublicValidationController::class, 'indexUser'])->name('user.cek-aset');
 });
