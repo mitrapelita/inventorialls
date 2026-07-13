@@ -34,8 +34,8 @@ class TransaksiController extends Controller
 
         // Data ekstra karyawan disimpan sementara di catatan_admin sebagai JSON
         $extraData = [
-            'nama_tl'      => $kData['nama_tl'] ?? null,
-            'no_ktp'       => $kData['no_ktp'] ?? null,
+            'nama_tl'      => $kData['team_leader'] ?? ($kData['nama_tl'] ?? null),
+            'no_ktp'       => $kData['nik_ktp'] ?? ($kData['no_ktp'] ?? null),
             'alamat_ktp'   => $kData['alamat_ktp'] ?? null,
             'domisili'     => $kData['domisili'] ?? null,
             'ruangan'      => $kData['ruangan'] ?? null,

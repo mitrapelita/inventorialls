@@ -76,7 +76,7 @@
                     {{ strtoupper(substr(auth()->user()->name ?? 'AD', 0, 2)) }}
                 </div>
                 <div class="overflow-hidden" x-show="isHovered || sidebarOpen" x-transition.opacity>
-                    <p class="text-sm font-semibold truncate">{{ auth()->user()->name ?? 'Admin Inventory' }}</p>
+                    <p class="text-sm font-semibold truncate">{{ implode(' ', array_slice(explode(' ', auth()->user()->name ?? 'Admin Inventory'), 0, 2)) }}</p>
                     <p class="text-xs text-blue-200 truncate">{{ auth()->user()->id_karyawan ?? 'admin' }}</p>
                 </div>
             </div>

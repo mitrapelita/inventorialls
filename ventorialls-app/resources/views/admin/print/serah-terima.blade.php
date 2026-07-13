@@ -197,7 +197,7 @@
     <div class="data-list">
         <table>
             <tr>
-                <td class="label">Nama Tim</td>
+                <td class="label">Nama</td>
                 <td class="colon">:</td>
                 <td><strong>{{ $transaction->nama_pengaju }}</strong></td>
             </tr>

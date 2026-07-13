@@ -16,17 +16,17 @@
 <body class="bg-[#f4f7fb] text-slate-800 antialiased min-h-screen flex flex-col">
 
     <!-- Top Navigation -->
-    <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40">
+    <header class="bg-[#1d4ed8] border-b border-blue-800 shadow-md sticky top-0 z-40">
         <div class="max-w-5xl mx-auto px-4 sm:px-6">
             <div class="flex items-center justify-between h-16">
                 <!-- Logo -->
                 <div class="flex items-center gap-3">
                     <div class="flex items-center justify-center">
-                        <img src="{{ asset('image/logo-ventorialls-2.png') }}" alt="Ventorialls Logo" class="h-8 w-auto object-contain drop-shadow-sm">
+                        <img src="{{ asset('image/logo-ventorialls-2.png') }}" alt="Ventorialls Logo" class="h-8 w-auto object-contain drop-shadow-sm brightness-0 invert">
                     </div>
                     <div>
-                        <h1 class="font-medium text-slate-800 leading-tight">Ventorialls</h1>
-                        <p class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Karyawan Portal</p>
+                        <h1 class="font-medium text-white leading-tight">Ventorialls</h1>
+                        <p class="text-[10px] font-semibold text-blue-200 uppercase tracking-wider">Karyawan Portal</p>
                     </div>
                 </div>
 
@@ -49,12 +49,12 @@
                 <!-- Profile / Status -->
                 <div class="flex items-center gap-3">
                     <div class="text-right hidden sm:block">
-                        <p class="text-sm font-bold text-slate-800">Hi, Karyawan</p>
-                        <p class="text-xs text-emerald-600 font-medium flex items-center justify-end">
-                            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></span> Online
+                        <p class="text-sm font-bold text-white">Hi, Karyawan</p>
+                        <p class="text-xs text-emerald-400 font-medium flex items-center justify-end">
+                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1.5 animate-pulse"></span> Online
                         </p>
                     </div>
-                    <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
+                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white">
                         <i data-lucide="user" class="w-5 h-5"></i>
                     </div>
                 </div>

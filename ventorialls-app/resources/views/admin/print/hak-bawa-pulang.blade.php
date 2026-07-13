@@ -197,7 +197,7 @@
     <div class="data-list">
         <table>
             <tr>
-                <td class="label">Nama Peminjam</td>
+                <td class="label">Nama</td>
                 <td class="colon">:</td>
                 <td><strong>{{ $user->name }}</strong></td>
             </tr>
