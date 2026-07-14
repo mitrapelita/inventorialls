@@ -235,5 +235,48 @@
         </a>
     </div>
     </div>
+
+    <div class="grid grid-cols-1 gap-6 mt-6">
+        <!-- Chart Area for Barang Rusak -->
+        <div class="bg-white rounded-2xl shadow-soft border border-slate-100 p-5 flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-base font-bold text-slate-700">Grafik Barang Rusak</h3>
+                <form action="{{ route('dashboard') }}" method="GET" class="m-0">
+                    <select name="filter_rusak" onchange="this.form.submit()" class="px-3 py-1 rounded border border-slate-200 bg-slate-50 text-xs font-medium outline-none">
+                        <option value="harian" {{ $filter_rusak == 'harian' ? 'selected' : '' }}>7 Hari Terakhir</option>
+                        <option value="mingguan" {{ $filter_rusak == 'mingguan' ? 'selected' : '' }}>4 Minggu Terakhir</option>
+                        <option value="bulanan" {{ $filter_rusak == 'bulanan' ? 'selected' : '' }}>6 Bulan Terakhir</option>
+                        <option value="tahunan" {{ $filter_rusak == 'tahunan' ? 'selected' : '' }}>5 Tahun Terakhir</option>
+                    </select>
+                </form>
+            </div>
+            <!-- Real Bar Chart -->
+            <div class="flex-1 w-full overflow-x-auto flex flex-col pb-4">
+                @php $max_rusak = max(10, count($rusak_values) > 0 ? max($rusak_values) : 0); @endphp
+                <div class="flex-1 flex items-end justify-between space-x-2 pt-8 border-b border-slate-100 pb-2 relative min-w-[400px] mt-4 min-h-[200px]">
+                    <div class="absolute top-0 w-full border-t border-slate-100 border-dashed text-[10px] text-slate-400">{{ $max_rusak }}</div>
+                    <div class="absolute top-1/2 w-full border-t border-slate-100 border-dashed text-[10px] text-slate-400 transform -translate-y-1/2">{{ ceil($max_rusak / 2) }}</div>
+                
+                    @if(count($rusak_values) > 0 && array_sum($rusak_values) > 0)
+                        @foreach($rusak_values as $index => $value)
+                            <div class="flex-1 flex flex-col items-center group relative z-10 max-w-[50px] mx-auto w-full">
+                                <div class="w-full bg-rose-500 rounded-t-md hover:bg-rose-600 transition-all relative" 
+                                     style="height: {{ ($value / $max_rusak) * 100 }}%; min-height: {{ $value > 0 ? '4px' : '0px' }}">
+                                    <div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                                        {{ $value }}
+                                    </div>
+                                </div>
+                                <span class="text-[10px] text-slate-400 mt-2 truncate">{{ $rusak_labels[$index] }}</span>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span class="text-sm text-slate-400 font-medium">Belum ada data barang rusak.</span>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
 </x-layout>
 

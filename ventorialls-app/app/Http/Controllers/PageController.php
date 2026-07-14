@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 
 class PageController extends Controller
 {
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         $stats = [
             'total_aset'     => Inventory::count(),
@@ -60,7 +60,65 @@ class PageController extends Controller
             $chart_values[] = $chart_data->has($dateStr) ? $chart_data[$dateStr] : 0;
         }
 
-        return view('admin.dashboard', compact('stats', 'breakdown_aktif', 'breakdown_tersedia', 'breakdown_return', 'breakdown_rusak', 'recent_activities', 'chart_labels', 'chart_values'));
+        // --- NEW LOGIC FOR BARANG RUSAK ---
+        $filter_rusak = $request->get('filter_rusak', 'harian');
+        $rusak_labels = [];
+        $rusak_values = [];
+        
+        $queryRusak = \App\Models\Inventory::where('kondisi', 'Rusak');
+        
+        if ($filter_rusak == 'harian') {
+            $data = clone $queryRusak;
+            $data = $data->where('updated_at', '>=', now()->subDays(6)->startOfDay())
+                ->selectRaw('DATE(updated_at) as date, count(*) as count')
+                ->groupBy('date')
+                ->pluck('count', 'date');
+                
+            for ($i = 6; $i >= 0; $i--) {
+                $dateStr = now()->subDays($i)->format('Y-m-d');
+                $rusak_labels[] = now()->subDays($i)->format('d M');
+                $rusak_values[] = $data->has($dateStr) ? $data[$dateStr] : 0;
+            }
+        } elseif ($filter_rusak == 'mingguan') {
+            $data = clone $queryRusak;
+            $data = $data->where('updated_at', '>=', now()->subWeeks(3)->startOfWeek())
+                ->selectRaw('YEARWEEK(updated_at, 1) as week, count(*) as count')
+                ->groupBy('week')
+                ->pluck('count', 'week');
+                
+            for ($i = 3; $i >= 0; $i--) {
+                $weekStart = now()->subWeeks($i)->startOfWeek();
+                $weekStr = $weekStart->format('oV'); // Year-Week according to ISO-8601
+                $rusak_labels[] = 'Mg ' . $weekStart->format('W');
+                $rusak_values[] = $data->has($weekStr) ? $data[$weekStr] : 0;
+            }
+        } elseif ($filter_rusak == 'bulanan') {
+            $data = clone $queryRusak;
+            $data = $data->where('updated_at', '>=', now()->subMonths(5)->startOfMonth())
+                ->selectRaw('DATE_FORMAT(updated_at, "%Y-%m") as month, count(*) as count')
+                ->groupBy('month')
+                ->pluck('count', 'month');
+                
+            for ($i = 5; $i >= 0; $i--) {
+                $monthStr = now()->subMonths($i)->format('Y-m');
+                $rusak_labels[] = now()->subMonths($i)->format('M y');
+                $rusak_values[] = $data->has($monthStr) ? $data[$monthStr] : 0;
+            }
+        } elseif ($filter_rusak == 'tahunan') {
+            $data = clone $queryRusak;
+            $data = $data->where('updated_at', '>=', now()->subYears(4)->startOfYear())
+                ->selectRaw('YEAR(updated_at) as year, count(*) as count')
+                ->groupBy('year')
+                ->pluck('count', 'year');
+                
+            for ($i = 4; $i >= 0; $i--) {
+                $yearStr = now()->subYears($i)->format('Y');
+                $rusak_labels[] = $yearStr;
+                $rusak_values[] = $data->has($yearStr) ? $data[$yearStr] : 0;
+            }
+        }
+
+        return view('admin.dashboard', compact('stats', 'breakdown_aktif', 'breakdown_tersedia', 'breakdown_return', 'breakdown_rusak', 'recent_activities', 'chart_labels', 'chart_values', 'rusak_labels', 'rusak_values', 'filter_rusak'));
 
     }
 

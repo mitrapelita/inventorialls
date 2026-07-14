@@ -13,9 +13,9 @@
         </div>
     @endif
 
-    <div class="mb-6 text-center w-full max-w-4xl">
-        <h1 class="text-2xl font-bold text-slate-800">Cek Aset / Validasi Fisik</h1>
-        <p class="text-slate-500 text-sm mt-1">Masukkan nomor aset untuk memeriksa data di sistem.</p>
+    <div class="mb-5 md:mb-6 text-center w-full max-w-4xl">
+        <h1 class="text-lg md:text-2xl font-bold text-slate-800 tracking-tight">Cek Aset / Validasi Fisik</h1>
+        <p class="text-slate-500 text-xs md:text-sm mt-1">Masukkan nomor aset untuk memeriksa data di sistem.</p>
     </div>
 
     <div x-data="validasiApp()" class="w-full max-w-4xl">
@@ -24,9 +24,9 @@
       <div  class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 min-w-0">
         <!-- Input Panel -->
         <div class="col-span-1 lg:col-span-1 min-w-0">
-          <div class="bg-white rounded-2xl shadow-soft p-4 md:p-5 border border-slate-100">
-            <h4 class="text-sm md:text-base font-bold text-slate-700 mb-4 flex items-center">
-              <i data-lucide="keyboard" class="w-4 h-4 mr-2 text-[#1d4ed8]"></i>
+          <div class="bg-white rounded-[20px] md:rounded-2xl shadow-soft p-4 md:p-5 border border-slate-100">
+            <h4 class="text-[13px] md:text-base font-bold text-slate-700 mb-3 md:mb-4 flex items-center">
+              <i data-lucide="keyboard" class="w-3.5 md:w-4 h-3.5 md:h-4 mr-2 text-[#1d4ed8]"></i>
               Input Barang
             </h4>
             
@@ -34,9 +34,9 @@
               <div>
                 <label class="block text-[10px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Input No. Aset</label>
                 <div class="relative flex items-center">
-                  <i data-lucide="keyboard" class="absolute left-3 w-4 h-4 text-slate-400"></i>
-                  <input type="text" x-model="searchSn" placeholder="Input No. Aset disini..." class="w-full pl-9 md:pl-10 pr-12 md:pr-14 py-2.5 md:py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs md:text-sm focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8] font-mono outline-none transition-all">
-                  <button type="submit" class="absolute right-2 p-1.5 md:p-2 bg-[#1d4ed8] text-white rounded-lg hover:bg-[#1e40af] transition-colors shadow-sm cursor-pointer">
+                  <i data-lucide="keyboard" class="absolute left-3 w-3.5 md:w-4 h-3.5 md:h-4 text-slate-400"></i>
+                  <input type="text" x-model="searchSn" placeholder="Input No. Aset disini..." class="w-full pl-9 md:pl-10 pr-12 md:pr-14 py-2 md:py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs md:text-sm focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8] font-mono outline-none transition-all">
+                  <button type="submit" class="absolute right-1.5 md:right-2 p-1.5 md:p-2 bg-[#1d4ed8] text-white rounded-lg hover:bg-[#1e40af] transition-colors shadow-sm cursor-pointer">
                       <i data-lucide="search" class="w-3.5 h-3.5 md:w-4 md:h-4"></i>
                   </button>
                 </div>

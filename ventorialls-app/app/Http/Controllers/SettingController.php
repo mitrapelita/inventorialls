@@ -105,7 +105,7 @@ class SettingController extends Controller
 
     public function bulkDestroy(Request $request)
     {
-        if ($request->pin !== '447747') {
+        if ($request->pin !== \App\Models\Setting::get('validation_pin', env('VALIDATION_PIN', '447747'))) {
             return response()->json(['success' => false, 'message' => 'PIN salah!'], 403);
         }
 
@@ -162,7 +162,7 @@ class SettingController extends Controller
 
     public function bulkDestroyApprover(Request $request)
     {
-        if ($request->pin !== '447747') {
+        if ($request->pin !== \App\Models\Setting::get('validation_pin', env('VALIDATION_PIN', '447747'))) {
             return response()->json(['success' => false, 'message' => 'PIN salah!'], 403);
         }
 
@@ -172,5 +172,27 @@ class SettingController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    public function updatePin(Request $request)
+    {
+        $request->validate([
+            'old_pin' => 'required|string',
+            'new_pin' => 'required|string|min:6|max:6|confirmed',
+        ], [
+            'new_pin.min' => 'PIN baru harus 6 digit.',
+            'new_pin.max' => 'PIN baru harus 6 digit.',
+            'new_pin.confirmed' => 'Konfirmasi PIN baru tidak cocok.',
+        ]);
+
+        $currentPin = \App\Models\Setting::get('validation_pin', env('VALIDATION_PIN', '447747'));
+
+        if ($request->old_pin !== $currentPin) {
+            return redirect()->back()->with('error', 'PIN lama salah!');
+        }
+
+        \App\Models\Setting::set('validation_pin', $request->new_pin);
+
+        return redirect()->back()->with('success', 'PIN Validasi berhasil diperbarui.');
     }
 }

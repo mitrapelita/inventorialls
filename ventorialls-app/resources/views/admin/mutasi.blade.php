@@ -862,10 +862,10 @@
 
           async processDelete() {
               this.pinError = '';
-              if (this.pinInput !== '447747') {
-                  this.pinError = 'PIN salah!';
-                  return;
-              }
+              if (!this.pinInput) {
+                        this.pinError = 'PIN harus diisi!';
+                        return;
+                    }
               this.deleteProcessing = true;
 
               try {

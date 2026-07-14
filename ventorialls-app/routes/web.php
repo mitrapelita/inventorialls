@@ -56,6 +56,8 @@ Route::prefix('workspaceinventory')->middleware('auth')->group(function () {
     Route::put('/pengaturan/approver/{approver}', [App\Http\Controllers\SettingController::class, 'updateApprover'])->name('pengaturan.approver.update');
     Route::delete('/pengaturan/approver/{approver}', [App\Http\Controllers\SettingController::class, 'destroyApprover'])->name('pengaturan.approver.destroy');
 
+    Route::post('/pengaturan/update-pin', [App\Http\Controllers\SettingController::class, 'updatePin'])->name('pengaturan.updatePin');
+
     // Manajemen Tiket
     Route::get('/tiket',             function () { return view('admin.tiket'); })->name('admin-tiket');
     Route::post('/tiket',            [TicketController::class, 'store'])->name('ticket.store');

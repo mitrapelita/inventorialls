@@ -404,7 +404,7 @@ class TransaksiController extends Controller
 
     public function bulkDestroy(Request $request)
     {
-        if ($request->pin !== '447747') {
+        if ($request->pin !== \App\Models\Setting::get('validation_pin', env('VALIDATION_PIN', '447747'))) {
             return response()->json(['success' => false, 'message' => 'PIN salah!'], 403);
         }
 
