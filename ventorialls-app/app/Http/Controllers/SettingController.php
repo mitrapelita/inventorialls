@@ -128,7 +128,7 @@ class SettingController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'role' => 'required|in:SPV,HRD',
+            'role' => 'required|in:SPV,HRD,TL',
         ]);
 
         \App\Models\Approver::create([
@@ -143,7 +143,7 @@ class SettingController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'role' => 'required|in:SPV,HRD',
+            'role' => 'required|in:SPV,HRD,TL',
         ]);
 
         $approver->update([

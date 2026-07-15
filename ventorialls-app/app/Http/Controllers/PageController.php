@@ -138,8 +138,9 @@ class PageController extends Controller
         });
 
         $trashedKaryawans = User::onlyTrashed()->where('role', 'karyawan')->latest()->get();
+        $tls = \App\Models\Approver::where('role', 'TL')->get();
 
-        return view('admin.karyawan', compact('karyawans', 'trashedKaryawans'));
+        return view('admin.karyawan', compact('karyawans', 'trashedKaryawans', 'tls'));
     }
 
     public function validasi()
@@ -219,7 +220,8 @@ class PageController extends Controller
 
         $approvers = \App\Models\Approver::all();
 
-        return view('admin.transaksi', compact('serahTerima', 'activeBorrowers', 'penukaran', 'historyPeminjaman', 'karyawans', 'mapItems', 'approvers'));
+        $tls = \App\Models\Approver::where('role', 'TL')->get();
+        return view('admin.transaksi', compact('serahTerima', 'activeBorrowers', 'penukaran', 'historyPeminjaman', 'karyawans', 'mapItems', 'approvers', 'tls'));
     }
 
     public function mutasi()
@@ -280,7 +282,8 @@ class PageController extends Controller
                 ->first();
         }
         $approvers = \App\Models\Approver::all();
-        return view('user.tiket', compact('type', 'id', 'ticket', 'approvers'));
+        $tls = \App\Models\Approver::where('role', 'TL')->get();
+        return view('user.tiket', compact('type', 'id', 'ticket', 'approvers', 'tls'));
     }
 
     // ─── Halaman Histori Barang ────────────────────────────────────────────────

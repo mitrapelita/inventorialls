@@ -242,10 +242,14 @@
                                 <input type="text" name="kontak" x-model="formData.kontak" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 outline-none text-sm">
                             </div>
                             
-                            <!-- Serah Terima / Detail Data -->
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">Nama Team Leader</label>
-                                <input type="text" name="nama_tl" x-model="formData.nama_tl" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 outline-none text-sm">
+                                <select name="nama_tl" x-model="formData.nama_tl" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 outline-none text-sm cursor-pointer">
+                                    <option value="">Pilih Team Leader...</option>
+                                    @foreach($tls as $tl)
+                                        <option value="{{ $tl->name }}">{{ $tl->name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">No KTP (NIK)</label>

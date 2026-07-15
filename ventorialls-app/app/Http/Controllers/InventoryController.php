@@ -111,4 +111,77 @@ class InventoryController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function import(Request $request)
+    {
+        $items = $request->json()->all();
+        if (!is_array($items)) {
+            return response()->json(['success' => false, 'message' => 'Format data tidak valid'], 400);
+        }
+
+        $successCount = 0;
+        $skippedItems = [];
+        $processedSns = [];
+
+        foreach ($items as $item) {
+            if (empty($item['jenis']) || empty($item['merk']) || empty($item['sn'])) {
+                continue;
+            }
+
+            $sn = $item['sn'];
+
+            // Cek duplikat dalam file Excel itu sendiri
+            if (in_array($sn, $processedSns)) {
+                $skippedItems[] = [
+                    'sn' => $sn,
+                    'merk' => $item['merk'],
+                    'reason' => 'Duplikat dalam file Excel'
+                ];
+                continue;
+            }
+
+            // Cek duplikat di database
+            $exists = Inventory::where('sn', $sn)->exists();
+            if ($exists) {
+                $skippedItems[] = [
+                    'sn' => $sn,
+                    'merk' => $item['merk'],
+                    'reason' => 'Sudah ada di database'
+                ];
+                $processedSns[] = $sn;
+                continue;
+            }
+
+            // Simpan data
+            Inventory::create([
+                'jenis'          => $item['jenis'],
+                'merk'           => $item['merk'],
+                'sn'             => $sn,
+                'tanggal_masuk'  => now()->format('Y-m-d'),
+                'kepemilikan'    => 'PTMPTB',
+                'lokasi'         => 'Ruangan IT',
+                'kondisi'        => 'Baik',
+                'status'         => 'Disimpan',
+                'hak_bawa_pulang'=> false,
+            ]);
+            
+            $processedSns[] = $sn;
+            $successCount++;
+        }
+
+        if ($successCount > 0) {
+            ActivityLog::record(
+                'import', 'Inventory', null,
+                "Admin mengimpor {$successCount} data inventaris baru dari file Excel."
+            );
+        }
+
+        return response()->json([
+            'success' => true, 
+            'success_count' => $successCount,
+            'skipped_count' => count($skippedItems),
+            'skipped_items' => $skippedItems,
+            'message' => "Berhasil mengimpor {$successCount} data inventaris."
+        ]);
+    }
 }

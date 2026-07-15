@@ -174,7 +174,12 @@
                         @if($type === 'serah-terima')
                         <div>
                             <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Nama Team Leader <span class="text-rose-500">*</span></label>
-                            <input type="text" name="team_leader" required class="w-full px-3 sm:px-4 py-2 sm:py-2.5 sm:py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8] outline-none text-sm transition-all">
+                            <select name="team_leader" required class="w-full px-3 sm:px-4 py-2 sm:py-2.5 sm:py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8] outline-none text-sm transition-all cursor-pointer">
+                                <option value="" disabled selected>Pilih Team Leader...</option>
+                                @foreach($tls as $tl)
+                                    <option value="{{ $tl->name }}">{{ $tl->name }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div>
                             <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">No KTP <span class="text-rose-500">*</span></label>

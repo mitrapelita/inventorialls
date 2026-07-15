@@ -74,8 +74,8 @@
         <p class="text-slate-500 mt-2">Silakan pilih menu transaksi inventaris di bawah ini.</p>
     </div>
 
-    <!-- Grid Section for 3 Menu Items -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 relative z-10 w-full max-w-4xl px-2 sm:px-0">
+    <!-- Grid Section for 4 Menu Items -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 relative z-10 w-full max-w-5xl px-2 sm:px-0">
         
         <!-- Card 1: Serah Terima -->
         <a href="{{ route('user.serah-terima') }}" class="bg-white rounded-[20px] sm:rounded-[32px] p-4 sm:p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex flex-row sm:flex-col items-center sm:justify-center text-left sm:text-center transition-all hover:-translate-y-2 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] group sm:aspect-[4/5]">
@@ -118,6 +118,20 @@
             <div class="sm:mt-4 w-full flex-1">
                 <h3 class="font-bold text-slate-800 text-sm sm:text-base mb-0.5 sm:mb-1">Penukaran</h3>
                 <p class="text-[11px] sm:text-xs text-slate-400 font-medium leading-tight">Tukar Aset Rusak</p>
+            </div>
+        </a>
+
+        <!-- Card 4: Cek Aset -->
+        <a href="{{ route('user.cek-aset') }}" class="bg-white rounded-[20px] sm:rounded-[32px] p-4 sm:p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex flex-row sm:flex-col items-center sm:justify-center text-left sm:text-center transition-all hover:-translate-y-2 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] group sm:aspect-[4/5]">
+            <div class="flex-shrink-0 flex items-center justify-center relative w-16 h-16 sm:w-full sm:h-auto sm:flex-1 mr-4 sm:mr-0">
+                <div class="hidden sm:block absolute inset-0 m-auto w-24 h-24 rounded-full border-t-2 border-r-2 border-indigo-500 opacity-20 transform -rotate-45 group-hover:rotate-0 transition-all duration-500"></div>
+                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-indigo-100 to-indigo-50 text-indigo-600 rounded-full flex items-center justify-center shadow-inner relative z-10">
+                    <i data-lucide="search" class="w-6 h-6 sm:w-8 sm:h-8 drop-shadow-sm"></i>
+                </div>
+            </div>
+            <div class="sm:mt-4 w-full flex-1">
+                <h3 class="font-bold text-slate-800 text-sm sm:text-base mb-0.5 sm:mb-1">Cek Aset</h3>
+                <p class="text-[11px] sm:text-xs text-slate-400 font-medium leading-tight">Validasi Data Fisik</p>
             </div>
         </a>
 

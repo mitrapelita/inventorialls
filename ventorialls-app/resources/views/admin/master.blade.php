@@ -28,6 +28,10 @@
                 <p class="text-slate-500 text-xs">Kelola dan data ulang seluruh inventaris IT.</p>
             </div>
             <div class="flex items-center space-x-3 w-full sm:w-auto">
+                <button @click="openImportModal = true" class="flex-1 sm:flex-none bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 px-4 py-2 rounded-xl text-sm font-medium flex items-center justify-center transition-all">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4 mr-2"></i>
+                    Import Excel
+                </button>
                 <button @click="openAddModal()" class="flex-1 sm:flex-none bg-gradient-to-br from-[#1d4ed8] to-[#3b82f6] hover:bg-[#1e40af] text-white px-4 py-2 rounded-xl text-sm font-medium shadow-soft shadow-[#1d4ed8]/30 flex items-center justify-center transition-all">
                     <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
                     Input Data Baru
@@ -414,11 +418,11 @@
                                 </div>
                                 <div>
                                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Tanggal Masuk</p>
-                                    <p class="text-xs font-semibold text-slate-700" x-text="selectedData?.tanggal_masuk || '-'"></p>
+                                    <p class="text-xs font-semibold text-slate-700" x-text="formatDate(selectedData?.tanggal_masuk)"></p>
                                 </div>
                                 <div>
                                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Tanggal Sign In</p>
-                                    <p class="text-xs font-semibold text-slate-700" x-text="selectedData?.tanggal_signin || '-'"></p>
+                                    <p class="text-xs font-semibold text-slate-700" x-text="formatDate(selectedData?.tanggal_signin)"></p>
                                 </div>
                                 <div>
                                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Lokasi</p>
@@ -450,7 +454,7 @@
                                     <div class="absolute -left-[21px] top-1 bg-white p-0.5">
                                         <div class="w-2.5 h-2.5 bg-blue-600 rounded-full border border-white"></div>
                                     </div>
-                                    <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wide block" x-text="selectedData?.tanggal_signin || '02 Jul 2026'"></span>
+                                    <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wide block" x-text="formatDate(selectedData?.tanggal_signin) || '02 Juli 2026'"></span>
                                     <h5 class="text-xs font-semibold text-slate-700" x-text="selectedData?.pengguna || 'Tidak ada pengguna'"></h5>
                                     <p class="text-[10px] text-slate-400 mt-0.5" x-text="'Serah Terima (' + (selectedData?.department || 'Agent') + ')'"></p>
                                 </div>
@@ -468,7 +472,7 @@
                                     <div class="absolute -left-[21px] top-1 bg-white p-0.5">
                                         <div class="w-2.5 h-2.5 bg-slate-300 rounded-full border border-white"></div>
                                     </div>
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block" x-text="selectedData?.tanggal_masuk || '20 Jun 2026'"></span>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block" x-text="formatDate(selectedData?.tanggal_masuk) || '20 Juni 2026'"></span>
                                     <h5 class="text-xs font-semibold text-slate-700">Registrasi Awal</h5>
                                     <p class="text-[10px] text-slate-400 mt-0.5">Barang Masuk Gudang IT</p>
                                 </div>
@@ -508,9 +512,86 @@
             </div>
         </div>
     </div>
+
+    <!-- Import Excel Modal -->
+    <div x-show="openImportModal" 
+         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4"
+         style="display: none;">
+        <div @click.away="openImportModal = false" class="bg-white rounded-2xl shadow-xl w-full max-w-lg flex flex-col overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 class="text-sm font-bold text-slate-800">Import Data dari Excel</h3>
+                <button @click="openImportModal = false" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            
+            <div class="p-5">
+                <div class="bg-emerald-50 text-emerald-800 text-xs rounded-xl p-4 mb-4 border border-emerald-100 flex items-start">
+                    <i data-lucide="info" class="w-4 h-4 mr-2 flex-shrink-0 mt-0.5"></i>
+                    <div>
+                        <p class="font-bold mb-1">Format Excel yang didukung (.xlsx, .xls)</p>
+                        <p>Pastikan baris pertama berisi *Header* kolom persis dengan ejaan berikut:</p>
+                        <ul class="list-disc ml-4 mt-1 space-y-0.5 font-medium">
+                            <li>Jenis Barang</li>
+                            <li>Merk/Tipe</li>
+                            <li>No. Aset</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="border-2 border-dashed border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center text-center transition-colors mb-4 relative" :class="excelFile ? 'bg-emerald-50 border-emerald-300' : 'hover:bg-slate-50 hover:border-[#1d4ed8]'">
+                    <input type="file" accept=".xlsx, .xls, .csv" @change="handleFileUpload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" :disabled="importProcessing">
+                    <div x-show="!excelFile">
+                        <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-500">
+                            <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+                        </div>
+                        <p class="text-sm font-bold text-[#1d4ed8] mb-1">Klik atau drag file Excel kesini</p>
+                        <p class="text-xs text-slate-500">Maksimal 5MB</p>
+                    </div>
+                    <div x-show="excelFile">
+                        <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3 text-emerald-600">
+                            <i data-lucide="file-spreadsheet" class="w-6 h-6"></i>
+                        </div>
+                        <p class="text-sm font-bold text-emerald-700 mb-1" x-text="excelFile?.name"></p>
+                        <p class="text-xs text-emerald-600" x-text="importPreviewCount + ' baris data ditemukan'"></p>
+                    </div>
+                </div>
+
+                <div x-show="importError" class="bg-rose-50 text-rose-600 text-xs p-3 rounded-lg mb-4 border border-rose-100" x-text="importError"></div>
+                <div x-show="importSuccess" class="bg-emerald-50 text-emerald-600 text-xs p-3 rounded-lg mb-4 border border-emerald-100" x-text="importSuccess"></div>
+                
+                <div x-show="skippedItems.length > 0" class="bg-amber-50 rounded-xl p-4 mb-4 border border-amber-100 max-h-48 overflow-y-auto">
+                    <p class="text-xs font-bold text-amber-700 mb-2">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 inline mr-1"></i>
+                        Peringatan: <span x-text="skippedItems.length"></span> Data Duplikat Dilewati
+                    </p>
+                    <ul class="text-xs text-amber-600 list-disc ml-4 space-y-1">
+                        <template x-for="item in skippedItems" :key="item.sn">
+                            <li><span class="font-bold" x-text="item.sn"></span> - <span x-text="item.merk"></span> (<span class="italic" x-text="item.reason"></span>)</li>
+                        </template>
+                    </ul>
+                </div>
+
+                <div class="flex space-x-3 justify-end mt-4">
+                    <button type="button" @click="closeImportModal" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
+                        <span x-text="importSuccess ? 'Tutup' : 'Batal'"></span>
+                    </button>
+                    <button type="button" @click="processImport()" x-show="!importSuccess" :disabled="!excelFile || importProcessing" class="px-6 py-2 rounded-xl text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-soft disabled:opacity-50 flex items-center justify-center min-w-[120px]">
+                        <span x-show="!importProcessing">Import Data</span>
+                        <div x-show="importProcessing" class="flex items-center space-x-2">
+                            <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
+                            <span>Memproses...</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     </div>
     
     @push('scripts')
+    <!-- CDN for SheetJS to parse Excel files in browser -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script>
         function inventoryApp() {
             return {
@@ -522,6 +603,12 @@
                         this.$nextTick(() => { if(window.lucide) window.lucide.createIcons({ icons: window.lucide.icons }); });
                     });
                     this.$watch('filteredList', () => { this.selectedIds = []; });
+                },
+                formatDate(dateString) {
+                    if (!dateString || dateString === '-') return '-';
+                    const d = new Date(dateString);
+                    if (isNaN(d.getTime())) return dateString;
+                    return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
                 },
                 selectedIds: [],
                 openPinModal: false,
@@ -580,6 +667,118 @@
                 openModal: false,
                 openViewModal: false,
                 openDeleteModal: false,
+                openImportModal: false,
+                excelFile: null,
+                importError: '',
+                importSuccess: '',
+                importProcessing: false,
+                importPreviewCount: 0,
+                importDataPayload: [],
+                skippedItems: [],
+                
+                closeImportModal() {
+                    this.openImportModal = false;
+                    if (this.importSuccess) {
+                        window.location.reload();
+                    }
+                },
+
+                handleFileUpload(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    this.excelFile = file;
+                    this.importError = '';
+                    this.importSuccess = '';
+                    this.importDataPayload = [];
+                    
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, {type: 'array'});
+                            const firstSheetName = workbook.SheetNames[0];
+                            const worksheet = workbook.Sheets[firstSheetName];
+                            const json = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ''});
+                            
+                            if (json.length < 2) {
+                                this.importError = 'File Excel kosong atau tidak memiliki baris data.';
+                                return;
+                            }
+                            
+                            const headers = json[0].map(h => String(h).trim().toLowerCase());
+                            const idxJenis = headers.findIndex(h => h === 'jenis barang');
+                            const idxMerk = headers.findIndex(h => h === 'merk/tipe' || h === 'merk / tipe');
+                            const idxSn = headers.findIndex(h => h === 'no. aset' || h === 'no aset');
+                            
+                            if (idxJenis === -1 || idxMerk === -1 || idxSn === -1) {
+                                this.importError = 'Format kolom tidak sesuai. Pastikan ada kolom "Jenis Barang", "Merk/Tipe", dan "No. Aset".';
+                                return;
+                            }
+                            
+                            const payload = [];
+                            for (let i = 1; i < json.length; i++) {
+                                const row = json[i];
+                                const jenis = String(row[idxJenis] || '').trim();
+                                const merk = String(row[idxMerk] || '').trim();
+                                const sn = String(row[idxSn] || '').trim();
+                                
+                                if (jenis && merk && sn) {
+                                    payload.push({ jenis, merk, sn });
+                                }
+                            }
+                            
+                            if (payload.length === 0) {
+                                this.importError = 'Tidak ada baris data yang valid ditemukan.';
+                                return;
+                            }
+                            
+                            this.importPreviewCount = payload.length;
+                            this.importDataPayload = payload;
+                        } catch (err) {
+                            console.error(err);
+                            this.importError = 'Gagal membaca file Excel. Pastikan formatnya benar.';
+                        }
+                    };
+                    reader.readAsArrayBuffer(file);
+                },
+                
+                processImport() {
+                    if (this.importDataPayload.length === 0) {
+                        this.importError = 'Tidak ada data valid untuk diimpor.';
+                        return;
+                    }
+                    this.importProcessing = true;
+                    this.importError = '';
+                    
+                    fetch('{{ route("inventory.import") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify(this.importDataPayload)
+                    })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.success) {
+                            this.importSuccess = res.message;
+                            if (res.skipped_count && res.skipped_count > 0) {
+                                this.skippedItems = res.skipped_items;
+                                this.$nextTick(() => { if(window.lucide) window.lucide.createIcons({ icons: window.lucide.icons }); });
+                            } else {
+                                setTimeout(() => window.location.reload(), 1500);
+                            }
+                            this.importProcessing = false;
+                        } else {
+                            this.importError = res.message || 'Terjadi kesalahan sistem.';
+                            this.importProcessing = false;
+                        }
+                    })
+                    .catch(err => {
+                        this.importError = 'Gagal menghubungi server.';
+                        this.importProcessing = false;
+                    });
+                },
                 deleteItem: null,
                 showAlert: false,
                 searchQuery: '',

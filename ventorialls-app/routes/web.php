@@ -69,6 +69,7 @@ Route::prefix('workspaceinventory')->middleware('auth')->group(function () {
 
     // CRUD Inventaris (Master)
     Route::post('/master',               [InventoryController::class, 'store'])->name('inventory.store');
+    Route::post('/master/import',        [InventoryController::class, 'import'])->name('inventory.import');
     Route::put('/master/{inventory}',    [InventoryController::class, 'update'])->name('inventory.update');
     Route::delete('/master/{inventory}', [InventoryController::class, 'destroy'])->name('inventory.destroy');
 

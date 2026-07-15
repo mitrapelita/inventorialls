@@ -211,7 +211,12 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Team Leader</label>
-                                <input type="text" name="karyawan[team_leader]" x-model="formData.nama_tl" :required="isKaryawanBaru" placeholder="Team Leader..." class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1d4ed8]/20 outline-none text-sm">
+                                <select name="karyawan[team_leader]" x-model="formData.nama_tl" :required="isKaryawanBaru" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1d4ed8]/20 outline-none text-sm cursor-pointer">
+                                    <option value="">Pilih Team Leader...</option>
+                                    @foreach($tls as $tl)
+                                        <option value="{{ $tl->name }}">{{ $tl->name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">No KTP</label>

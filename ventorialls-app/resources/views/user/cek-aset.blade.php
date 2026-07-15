@@ -66,47 +66,38 @@
           </div>
 
           <!-- Found Result -->
-          <div x-show="assetFound" class="bg-white rounded-2xl shadow-soft p-5 border border-emerald-100 relative overflow-hidden" style="display: none;">
+          <div x-show="assetFound" class="bg-white rounded-2xl shadow-soft p-4 md:p-5 border border-emerald-100 relative overflow-hidden" style="display: none;">
             <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
             
-            <div class="flex justify-between items-start mb-5">
+            <div class="flex justify-between items-start mb-4 md:mb-5">
               <div>
-                <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[10px] font-bold uppercase tracking-wide border border-emerald-200 mb-2 inline-block">Valid / Ditemukan</span>
-                <h3 class="text-lg font-bold text-slate-800" x-text="assetData.merk"></h3>
-                <p class="text-slate-500 font-mono text-xs" x-text="assetData.sn"></p>
+                <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[9px] md:text-[10px] font-bold uppercase tracking-wide border border-emerald-200 mb-2 inline-block">Valid / Ditemukan</span>
+                <h3 class="text-base md:text-lg font-bold text-slate-800" x-text="assetData.merk"></h3>
+                <p class="text-slate-500 font-mono text-[11px] md:text-xs" x-text="assetData.sn"></p>
               </div>
-              <i data-lucide="check-circle-2" class="w-10 h-10 text-emerald-500 opacity-20"></i>
+              <i data-lucide="check-circle-2" class="w-8 h-8 md:w-10 md:h-10 text-emerald-500 opacity-20"></i>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 rounded-xl p-4 mb-5 border border-slate-100">
+            <div class="grid grid-cols-2 gap-3 md:gap-4 bg-slate-50 rounded-xl p-3 md:p-4 mb-4 md:mb-5 border border-slate-100">
               <div>
-                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Pengguna Saat Ini</p>
-                <p class="text-slate-700 text-sm font-bold" x-text="assetData.pengguna"></p>
+                <p class="text-[9px] md:text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Pengguna Saat Ini</p>
+                <p class="text-slate-700 text-xs md:text-sm font-bold" x-text="assetData.pengguna"></p>
               </div>
               <div>
-                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Department</p>
-                <p class="text-slate-700 text-sm font-bold" x-text="assetData.department"></p>
+                <p class="text-[9px] md:text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Department</p>
+                <p class="text-slate-700 text-xs md:text-sm font-bold" x-text="assetData.department"></p>
               </div>
               <div>
-                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Kondisi</p>
-                <div class="flex items-center text-sm font-bold text-slate-700">
-                  <span class="w-1.5 h-1.5 rounded-full mr-2" :class="assetData.kondisi === 'Baik' ? 'bg-emerald-500' : 'bg-red-500'"></span>
+                <p class="text-[9px] md:text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Kondisi</p>
+                <div class="flex items-center text-xs md:text-sm font-bold text-slate-700">
+                  <span class="w-1.5 h-1.5 rounded-full mr-1.5 md:mr-2" :class="assetData.kondisi === 'Baik' ? 'bg-emerald-500' : 'bg-red-500'"></span>
                   <span x-text="assetData.kondisi"></span>
                 </div>
               </div>
               <div>
-                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Status</p>
-                <p class="text-slate-700 text-sm font-bold" x-text="assetData.status"></p>
+                <p class="text-[9px] md:text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Status</p>
+                <p class="text-slate-700 text-xs md:text-sm font-bold" x-text="assetData.status"></p>
               </div>
-            </div>
-            
-            <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
-              <button class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2.5 rounded-xl transition-colors shadow-soft shadow-emerald-500/30">
-                Tandai Sudah Divalidasi
-              </button>
-              <button class="flex-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium py-2.5 rounded-xl transition-colors">
-                Update Kondisi Barang
-              </button>
             </div>
           </div>
         </div>
@@ -196,7 +187,12 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Team Leader</label>
-                                <input type="text" name="karyawan[team_leader]" x-model="formData.nama_tl" :required="isKaryawanBaru" placeholder="Team Leader..." class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1d4ed8]/20 outline-none text-sm">
+                                <select name="karyawan[team_leader]" x-model="formData.nama_tl" :required="isKaryawanBaru" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1d4ed8]/20 outline-none text-sm cursor-pointer">
+                                    <option value="">Pilih Team Leader...</option>
+                                    @foreach($tls as $tl)
+                                        <option value="{{ $tl->name }}">{{ $tl->name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">No KTP</label>

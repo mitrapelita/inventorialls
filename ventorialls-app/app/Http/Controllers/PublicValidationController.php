@@ -16,12 +16,14 @@ class PublicValidationController extends Controller
 
     public function index()
     {
-        return view('public.validasi-fisik');
+        $tls = \App\Models\Approver::where('role', 'TL')->get();
+        return view('public.validasi-fisik', compact('tls'));
     }
 
     public function indexUser()
     {
-        return view('user.cek-aset');
+        $tls = \App\Models\Approver::where('role', 'TL')->get();
+        return view('user.cek-aset', compact('tls'));
     }
 
     public function store(Request $request)

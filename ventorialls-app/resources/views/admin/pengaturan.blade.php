@@ -97,9 +97,9 @@
         </div>
 
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-8 mb-4">
-            <h3 class="text-lg font-bold text-slate-800">Daftar SPV & HRD</h3>
+            <h3 class="text-lg font-bold text-slate-800">Daftar SPV, HRD & TL</h3>
             <button @click="openApproverModal('add')" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-all shadow-sm flex items-center justify-center">
-                <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Tambah SPV/HRD
+                <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Tambah SPV/HRD/TL
             </button>
         </div>
         <!-- Data Approvers -->
@@ -118,7 +118,7 @@
                         <tr class="hover:bg-slate-50/50 transition-colors">
                             <td class="px-6 py-4 font-semibold text-slate-800">{{ $appr->name }}</td>
                             <td class="px-6 py-4">
-                                <span class="px-2.5 py-1 {{ $appr->role === 'SPV' ? 'bg-amber-50 text-amber-600 border-amber-100/50' : 'bg-purple-50 text-purple-600 border-purple-100/50' }} rounded-lg text-xs font-medium border">
+                                <span class="px-2.5 py-1 {{ $appr->role === 'SPV' ? 'bg-amber-50 text-amber-600 border-amber-100/50' : ($appr->role === 'TL' ? 'bg-blue-50 text-blue-600 border-blue-100/50' : 'bg-purple-50 text-purple-600 border-purple-100/50') }} rounded-lg text-xs font-medium border">
                                     {{ $appr->role }}
                                 </span>
                             </td>
@@ -285,7 +285,7 @@
 
                     <!-- Header -->
                     <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-                        <h3 class="text-lg font-bold text-slate-800" x-text="approverMode === 'add' ? 'Tambah SPV/HRD Baru' : 'Edit Data SPV/HRD'"></h3>
+                        <h3 class="text-lg font-bold text-slate-800" x-text="approverMode === 'add' ? 'Tambah SPV/HRD/TL Baru' : 'Edit Data SPV/HRD/TL'"></h3>
                         <button type="button" @click="closeApproverModal()" class="text-slate-400 hover:text-slate-500 bg-slate-50 hover:bg-slate-100 p-2 rounded-full transition-colors">
                             <i data-lucide="x" class="w-5 h-5"></i>
                         </button>
@@ -306,6 +306,7 @@
                                 <option value="" disabled>Pilih Jabatan</option>
                                 <option value="SPV">Supervisor (SPV)</option>
                                 <option value="HRD">HRD</option>
+                                <option value="TL">Team Leader (TL)</option>
                             </select>
                         </div>
                     </div>
