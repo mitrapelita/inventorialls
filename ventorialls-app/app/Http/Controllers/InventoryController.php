@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Inventory;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 
 class InventoryController extends Controller
@@ -11,21 +12,21 @@ class InventoryController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'jenis'          => ['required', 'string', 'max:100'],
-            'merk'           => ['required', 'string', 'max:255'],
-            'sn'             => ['required', 'string', 'max:100', 'unique:inventories,sn'],
-            'tanggal_masuk'  => ['nullable', 'date'],
-            'kepemilikan'    => ['required', 'in:PTMPTB,Vendor'],
-            'pengguna'       => ['nullable', 'string', 'max:255'],
-            'kontak'         => ['nullable', 'string', 'max:20'],
-            'department'     => ['nullable', 'string', 'max:100'],
-            'team_leader'    => ['nullable', 'string', 'max:255'],
+            'jenis' => ['required', 'string', 'max:100'],
+            'merk' => ['required', 'string', 'max:255'],
+            'sn' => ['required', 'string', 'max:100', 'unique:inventories,sn'],
+            'tanggal_masuk' => ['nullable', 'date'],
+            'kepemilikan' => ['required', 'in:PTMPTB,Vendor'],
+            'pengguna' => ['nullable', 'string', 'max:255'],
+            'kontak' => ['nullable', 'string', 'max:20'],
+            'department' => ['nullable', 'string', 'max:100'],
+            'team_leader' => ['nullable', 'string', 'max:255'],
             'tanggal_signin' => ['nullable', 'date'],
-            'lokasi'         => ['nullable', 'in:Di MPTB,Ruangan IT'],
-            'hak_bawa_pulang'=> ['nullable', 'boolean'],
-            'kondisi'        => ['required', 'in:Baik,Rusak'],
-            'status'         => ['required', 'in:Aktif,Disimpan,Return Vendor'],
-            'keterangan'     => ['nullable', 'string'],
+            'lokasi' => ['nullable', 'in:Di MPTB,Ruangan IT'],
+            'hak_bawa_pulang' => ['nullable', 'boolean'],
+            'kondisi' => ['required', 'in:Baik,Rusak'],
+            'status' => ['required', 'in:Aktif,Disimpan,Return Vendor'],
+            'keterangan' => ['nullable', 'string'],
         ], [
             'sn.unique' => 'Nomor Aset (SN) ini sudah terdaftar di Master Data. Silakan gunakan Nomor Aset yang lain.',
         ]);
@@ -44,21 +45,21 @@ class InventoryController extends Controller
     public function update(Request $request, Inventory $inventory)
     {
         $data = $request->validate([
-            'jenis'          => ['required', 'string', 'max:100'],
-            'merk'           => ['required', 'string', 'max:255'],
-            'sn'             => ['required', 'string', 'max:100', "unique:inventories,sn,{$inventory->id}"],
-            'tanggal_masuk'  => ['nullable', 'date'],
-            'kepemilikan'    => ['required', 'in:PTMPTB,Vendor'],
-            'pengguna'       => ['nullable', 'string', 'max:255'],
-            'kontak'         => ['nullable', 'string', 'max:20'],
-            'department'     => ['nullable', 'string', 'max:100'],
-            'team_leader'    => ['nullable', 'string', 'max:255'],
+            'jenis' => ['required', 'string', 'max:100'],
+            'merk' => ['required', 'string', 'max:255'],
+            'sn' => ['required', 'string', 'max:100', "unique:inventories,sn,{$inventory->id}"],
+            'tanggal_masuk' => ['nullable', 'date'],
+            'kepemilikan' => ['required', 'in:PTMPTB,Vendor'],
+            'pengguna' => ['nullable', 'string', 'max:255'],
+            'kontak' => ['nullable', 'string', 'max:20'],
+            'department' => ['nullable', 'string', 'max:100'],
+            'team_leader' => ['nullable', 'string', 'max:255'],
             'tanggal_signin' => ['nullable', 'date'],
-            'lokasi'         => ['nullable', 'in:Di MPTB,Ruangan IT'],
-            'hak_bawa_pulang'=> ['nullable', 'boolean'],
-            'kondisi'        => ['required', 'in:Baik,Rusak'],
-            'status'         => ['required', 'in:Aktif,Disimpan,Return Vendor'],
-            'keterangan'     => ['nullable', 'string'],
+            'lokasi' => ['nullable', 'in:Di MPTB,Ruangan IT'],
+            'hak_bawa_pulang' => ['nullable', 'boolean'],
+            'kondisi' => ['required', 'in:Baik,Rusak'],
+            'status' => ['required', 'in:Aktif,Disimpan,Return Vendor'],
+            'keterangan' => ['nullable', 'string'],
         ], [
             'sn.unique' => 'Nomor Aset (SN) ini sudah terdaftar di Master Data. Silakan gunakan Nomor Aset yang lain.',
         ]);
@@ -90,7 +91,7 @@ class InventoryController extends Controller
 
     public function bulkDestroy(Request $request)
     {
-        if ($request->pin !== \App\Models\Setting::get('validation_pin', env('VALIDATION_PIN', '447747'))) {
+        if ($request->pin !== Setting::get('validation_pin', env('VALIDATION_PIN', '447747'))) {
             return response()->json(['success' => false, 'message' => 'PIN salah!'], 403);
         }
 
@@ -103,7 +104,7 @@ class InventoryController extends Controller
                     'action' => 'deleted',
                     'model_type' => 'Inventory',
                     'model_id' => $item->id,
-                    'description' => "Menghapus massal data inventaris: {$item->name} ({$item->sn})"
+                    'description' => "Menghapus massal data inventaris: {$item->name} ({$item->sn})",
                 ]);
                 $item->delete();
             }
@@ -115,7 +116,7 @@ class InventoryController extends Controller
     public function import(Request $request)
     {
         $items = $request->json()->all();
-        if (!is_array($items)) {
+        if (! is_array($items)) {
             return response()->json(['success' => false, 'message' => 'Format data tidak valid'], 400);
         }
 
@@ -135,8 +136,9 @@ class InventoryController extends Controller
                 $skippedItems[] = [
                     'sn' => $sn,
                     'merk' => $item['merk'],
-                    'reason' => 'Duplikat dalam file Excel'
+                    'reason' => 'Duplikat dalam file Excel',
                 ];
+
                 continue;
             }
 
@@ -146,25 +148,26 @@ class InventoryController extends Controller
                 $skippedItems[] = [
                     'sn' => $sn,
                     'merk' => $item['merk'],
-                    'reason' => 'Sudah ada di database'
+                    'reason' => 'Sudah ada di database',
                 ];
                 $processedSns[] = $sn;
+
                 continue;
             }
 
             // Simpan data
             Inventory::create([
-                'jenis'          => $item['jenis'],
-                'merk'           => $item['merk'],
-                'sn'             => $sn,
-                'tanggal_masuk'  => now()->format('Y-m-d'),
-                'kepemilikan'    => 'PTMPTB',
-                'lokasi'         => 'Ruangan IT',
-                'kondisi'        => 'Baik',
-                'status'         => 'Disimpan',
-                'hak_bawa_pulang'=> false,
+                'jenis' => $item['jenis'],
+                'merk' => $item['merk'],
+                'sn' => $sn,
+                'tanggal_masuk' => now()->format('Y-m-d'),
+                'kepemilikan' => 'PTMPTB',
+                'lokasi' => 'Ruangan IT',
+                'kondisi' => 'Baik',
+                'status' => 'Disimpan',
+                'hak_bawa_pulang' => false,
             ]);
-            
+
             $processedSns[] = $sn;
             $successCount++;
         }
@@ -177,11 +180,11 @@ class InventoryController extends Controller
         }
 
         return response()->json([
-            'success' => true, 
+            'success' => true,
             'success_count' => $successCount,
             'skipped_count' => count($skippedItems),
             'skipped_items' => $skippedItems,
-            'message' => "Berhasil mengimpor {$successCount} data inventaris."
+            'message' => "Berhasil mengimpor {$successCount} data inventaris.",
         ]);
     }
 }

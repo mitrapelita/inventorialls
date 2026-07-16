@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Inventory;
 use App\Models\StockMutation;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
-use App\Models\Inventory;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -20,10 +21,10 @@ class MutasiController extends Controller
         $items = Inventory::where('status', 'Disimpan')
             ->where('kondisi', 'Rusak')
             ->get();
-            
+
         return response()->json([
             'success' => true,
-            'data' => $items
+            'data' => $items,
         ]);
     }
 
@@ -33,28 +34,28 @@ class MutasiController extends Controller
     public function storeMasuk(Request $request)
     {
         $request->validate([
-            'jenis'      => 'required|string|max:255',
-            'merk'       => 'nullable|string|max:255',
-            'jumlah'     => 'required|numeric|min:1',
-            'satuan'     => 'nullable|string|max:50',
-            'tanggal'    => 'required|date',
+            'jenis' => 'required|string|max:255',
+            'merk' => 'nullable|string|max:255',
+            'jumlah' => 'required|numeric|min:1',
+            'satuan' => 'nullable|string|max:50',
+            'tanggal' => 'required|date',
             'keterangan' => 'nullable|string',
         ]);
 
         StockMutation::create([
-            'type'       => 'masuk',
-            'jenis'      => $request->jenis,
-            'merk'       => $request->merk,
-            'jumlah'     => $request->jumlah,
-            'satuan'     => $request->satuan,
+            'type' => 'masuk',
+            'jenis' => $request->jenis,
+            'merk' => $request->merk,
+            'jumlah' => $request->jumlah,
+            'satuan' => $request->satuan,
             'keterangan' => $request->keterangan,
             'created_by' => Auth::id(),
-            'created_at' => $request->tanggal . ' ' . now()->format('H:i:s'),
+            'created_at' => $request->tanggal.' '.now()->format('H:i:s'),
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Pencatatan Barang Masuk berhasil disimpan!'
+            'message' => 'Pencatatan Barang Masuk berhasil disimpan!',
         ]);
     }
 
@@ -66,6 +67,7 @@ class MutasiController extends Controller
         try {
             $mutation = StockMutation::findOrFail($id);
             $mutation->delete();
+
             return response()->json(['success' => true, 'message' => 'Data Barang Masuk berhasil dihapus']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
@@ -78,13 +80,14 @@ class MutasiController extends Controller
     public function bulkDestroyMasuk(Request $request)
     {
         $request->validate([
-            'ids'   => 'required|array|min:1',
-            'ids.*' => 'exists:stock_mutations,id'
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'exists:stock_mutations,id',
         ]);
 
         try {
             StockMutation::whereIn('id', $request->ids)->delete();
-            return response()->json(['success' => true, 'message' => count($request->ids) . ' data berhasil dihapus']);
+
+            return response()->json(['success' => true, 'message' => count($request->ids).' data berhasil dihapus']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
@@ -96,11 +99,11 @@ class MutasiController extends Controller
     public function storeKeluar(Request $request)
     {
         $request->validate([
-            'tanggal'       => 'required|date',
+            'tanggal' => 'required|date',
             'alamat_tujuan' => 'nullable|string',
-            'keterangan'    => 'nullable|string',
-            'items'         => 'required|array|min:1', // array of inventory_id
-            'items.*'       => 'exists:inventories,id',
+            'keterangan' => 'nullable|string',
+            'items' => 'required|array|min:1', // array of inventory_id
+            'items.*' => 'exists:inventories,id',
         ]);
 
         DB::beginTransaction();
@@ -110,35 +113,54 @@ class MutasiController extends Controller
 
             // Buat record Transaction
             $transaction = Transaction::create([
-                'doc_number'    => $docNumber,
-                'type'          => 'barang_keluar',
-                'status'        => 'selesai',
-                'nama_pengaju'  => Auth::user()->name,
-                'department'    => Auth::user()->department ?? 'IT',
+                'doc_number' => $docNumber,
+                'type' => 'barang_keluar',
+                'status' => 'selesai',
+                'nama_pengaju' => Auth::user()->name,
+                'department' => Auth::user()->department ?? 'IT',
                 'alamat_tujuan' => $request->alamat_tujuan,
-                'keterangan'    => $request->keterangan,
-                'created_at'    => $request->tanggal . ' ' . now()->format('H:i:s'),
+                'keterangan' => $request->keterangan,
+                'created_at' => $request->tanggal.' '.now()->format('H:i:s'),
                 'validated_by' => Auth::id(),
                 'validated_at' => now(),
             ]);
 
-            // Ambil semua data inventory yang dipilih
-            $inventories = Inventory::whereIn('id', $request->items)->get();
+            // Ambil semua data inventory yang dipilih (jika ada)
+            if ($request->has('items') && is_array($request->items)) {
+                $inventories = Inventory::whereIn('id', $request->items)->get();
 
-            foreach ($inventories as $inv) {
-                // Catat ke TransactionItem
-                TransactionItem::create([
-                    'transaction_id' => $transaction->id,
-                    'inventory_id'   => $inv->id,
-                    'kategori'       => $inv->jenis,
-                    'no_aset'        => $inv->sn,
-                    'keterangan'     => $inv->keterangan,
-                ]);
+                foreach ($inventories as $inv) {
+                    // Catat ke TransactionItem
+                    TransactionItem::create([
+                        'transaction_id' => $transaction->id,
+                        'inventory_id' => $inv->id,
+                        'kategori' => $inv->jenis,
+                        'no_aset' => $inv->sn,
+                        'keterangan' => $inv->keterangan,
+                        'jumlah' => 1,
+                    ]);
 
-                // Update status barang menjadi Return Vendor
-                $inv->update([
-                    'status' => 'Return Vendor'
-                ]);
+                    // Update status barang menjadi Return Vendor
+                    $inv->update([
+                        'status' => 'Return Vendor',
+                    ]);
+                }
+            }
+
+            // Simpan manual items (jika ada)
+            if ($request->has('manual_items') && is_array($request->manual_items)) {
+                foreach ($request->manual_items as $mItem) {
+                    if (!empty($mItem['nama']) && !empty($mItem['jumlah'])) {
+                        TransactionItem::create([
+                            'transaction_id' => $transaction->id,
+                            'inventory_id' => null,
+                            'kategori' => 'Manual / Aksesoris',
+                            'no_aset' => '-',
+                            'keterangan' => $mItem['nama'],
+                            'jumlah' => (int) $mItem['jumlah'],
+                        ]);
+                    }
+                }
             }
 
             DB::commit();
@@ -146,14 +168,15 @@ class MutasiController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Proses Barang Keluar berhasil disimpan!',
-                'transaction_id' => $transaction->id
+                'transaction_id' => $transaction->id,
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -164,7 +187,7 @@ class MutasiController extends Controller
     public function terimaKembali(Request $request, Transaction $transaction)
     {
         $request->validate([
-            'returned_items'   => 'required|array|min:1',
+            'returned_items' => 'required|array|min:1',
             'returned_items.*' => 'exists:transaction_items,id',
         ]);
 
@@ -172,7 +195,7 @@ class MutasiController extends Controller
         try {
             foreach ($request->returned_items as $itemId) {
                 $item = TransactionItem::find($itemId);
-                if ($item && $item->transaction_id == $transaction->id && !$item->is_returned) {
+                if ($item && $item->transaction_id == $transaction->id && ! $item->is_returned) {
                     $item->update(['is_returned' => true]);
 
                     $kondisi = $request->input("returned_conditions.{$itemId}", 'Baik');
@@ -192,18 +215,19 @@ class MutasiController extends Controller
                     }
                 }
             }
-            
+
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Status barang berhasil diupdate menjadi Disimpan!'
+                'message' => 'Status barang berhasil diupdate menjadi Disimpan!',
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -230,6 +254,7 @@ class MutasiController extends Controller
         try {
             $this->revertInventoryStatus($transaction);
             $transaction->delete(); // Otomatis hapus item karena cascade
+
             return response()->json(['success' => true, 'message' => 'Data Barang Keluar berhasil dihapus']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
@@ -242,8 +267,8 @@ class MutasiController extends Controller
     public function bulkDestroyKeluar(Request $request)
     {
         $request->validate([
-            'ids'   => 'required|array|min:1',
-            'ids.*' => 'exists:transactions,id'
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'exists:transactions,id',
         ]);
 
         try {
@@ -252,7 +277,8 @@ class MutasiController extends Controller
                 $this->revertInventoryStatus($t);
                 $t->delete();
             }
-            return response()->json(['success' => true, 'message' => count($request->ids) . ' data berhasil dihapus']);
+
+            return response()->json(['success' => true, 'message' => count($request->ids).' data berhasil dihapus']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
@@ -266,9 +292,10 @@ class MutasiController extends Controller
         if ($transaction->type !== 'barang_keluar') {
             abort(404, 'Dokumen tidak ditemukan atau bukan tipe Barang Keluar.');
         }
-        
+
         $transaction->load('items');
-        \Illuminate\Support\Facades\App::setLocale('id'); // Bahasa Indonesia
+        App::setLocale('id'); // Bahasa Indonesia
+
         return view('admin.print.barang-keluar', compact('transaction'));
     }
 }

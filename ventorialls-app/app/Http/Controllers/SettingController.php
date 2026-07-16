@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Approver;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -15,7 +17,8 @@ class SettingController extends Controller
     public function index()
     {
         $admins = User::where('role', 'admin')->get();
-        $approvers = \App\Models\Approver::all();
+        $approvers = Approver::all();
+
         return view('admin.pengaturan', compact('admins', 'approvers'));
     }
 
@@ -30,13 +33,13 @@ class SettingController extends Controller
             'password' => 'required|string|min:6',
         ], [
             'id_karyawan.unique' => 'Username/ID Karyawan sudah terdaftar.',
-            'password.min' => 'Password minimal 6 karakter.'
+            'password.min' => 'Password minimal 6 karakter.',
         ]);
 
         User::create([
             'name' => $request->name,
             'id_karyawan' => $request->id_karyawan,
-            'email' => $request->id_karyawan . '@ventorialls.co',
+            'email' => $request->id_karyawan.'@ventorialls.co',
             'password' => Hash::make($request->password),
             'role' => 'admin',
         ]);
@@ -60,13 +63,13 @@ class SettingController extends Controller
             'password' => 'nullable|string|min:6',
         ], [
             'id_karyawan.unique' => 'Username/ID Karyawan sudah terdaftar.',
-            'password.min' => 'Password minimal 6 karakter.'
+            'password.min' => 'Password minimal 6 karakter.',
         ]);
 
         $data = [
             'name' => $request->name,
             'id_karyawan' => $request->id_karyawan,
-            'email' => $request->id_karyawan . '@ventorialls.co',
+            'email' => $request->id_karyawan.'@ventorialls.co',
         ];
 
         if ($request->filled('password')) {
@@ -105,7 +108,7 @@ class SettingController extends Controller
 
     public function bulkDestroy(Request $request)
     {
-        if ($request->pin !== \App\Models\Setting::get('validation_pin', env('VALIDATION_PIN', '447747'))) {
+        if ($request->pin !== Setting::get('validation_pin', env('VALIDATION_PIN', '447747'))) {
             return response()->json(['success' => false, 'message' => 'PIN salah!'], 403);
         }
 
@@ -131,7 +134,7 @@ class SettingController extends Controller
             'role' => 'required|in:SPV,HRD,TL',
         ]);
 
-        \App\Models\Approver::create([
+        Approver::create([
             'name' => $request->name,
             'role' => $request->role,
         ]);
@@ -139,7 +142,7 @@ class SettingController extends Controller
         return redirect()->back()->with('success', 'Data SPV/HRD berhasil ditambahkan');
     }
 
-    public function updateApprover(Request $request, \App\Models\Approver $approver)
+    public function updateApprover(Request $request, Approver $approver)
     {
         $request->validate([
             'name' => 'required|string|max:255',
@@ -154,21 +157,22 @@ class SettingController extends Controller
         return redirect()->back()->with('success', 'Data SPV/HRD berhasil diperbarui');
     }
 
-    public function destroyApprover(\App\Models\Approver $approver)
+    public function destroyApprover(Approver $approver)
     {
         $approver->delete();
+
         return redirect()->back()->with('success', 'Data SPV/HRD berhasil dihapus');
     }
 
     public function bulkDestroyApprover(Request $request)
     {
-        if ($request->pin !== \App\Models\Setting::get('validation_pin', env('VALIDATION_PIN', '447747'))) {
+        if ($request->pin !== Setting::get('validation_pin', env('VALIDATION_PIN', '447747'))) {
             return response()->json(['success' => false, 'message' => 'PIN salah!'], 403);
         }
 
         $ids = $request->ids ?? [];
         if (count($ids) > 0) {
-            \App\Models\Approver::whereIn('id', $ids)->delete();
+            Approver::whereIn('id', $ids)->delete();
         }
 
         return response()->json(['success' => true]);
@@ -185,13 +189,13 @@ class SettingController extends Controller
             'new_pin.confirmed' => 'Konfirmasi PIN baru tidak cocok.',
         ]);
 
-        $currentPin = \App\Models\Setting::get('validation_pin', env('VALIDATION_PIN', '447747'));
+        $currentPin = Setting::get('validation_pin', env('VALIDATION_PIN', '447747'));
 
         if ($request->old_pin !== $currentPin) {
             return redirect()->back()->with('error', 'PIN lama salah!');
         }
 
-        \App\Models\Setting::set('validation_pin', $request->new_pin);
+        Setting::set('validation_pin', $request->new_pin);
 
         return redirect()->back()->with('success', 'PIN Validasi berhasil diperbarui.');
     }

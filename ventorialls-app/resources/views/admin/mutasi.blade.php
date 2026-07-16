@@ -343,6 +343,25 @@
                             </div>
 
                             <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Daftar Barang Manual (Opsional)</label>
+                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                                    <template x-for="(mItem, index) in formKeluar.manualItems" :key="index">
+                                        <div class="flex items-center space-x-3 bg-white p-2 rounded-lg border border-slate-200 shadow-sm">
+                                            <input type="text" x-model="mItem.nama" placeholder="Nama Barang (Misal: Kabel Charger)" class="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8]" required>
+                                            <input type="number" x-model="mItem.jumlah" placeholder="Jumlah" class="w-24 px-3 py-1.5 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8]" min="1" required>
+                                            <button type="button" @click="removeManualItem(index)" class="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                                            </button>
+                                        </div>
+                                    </template>
+                                    <button type="button" @click="addManualItem()" class="text-xs font-semibold text-[#1d4ed8] hover:text-[#1e3a8a] flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-4 h-4 mr-1"><path d="M5 12h14"/><path d="M12 5v14"/></svg> 
+                                        Tambah Barang Manual
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">Alamat Tujuan</label>
                                 <textarea rows="2" x-model="formKeluar.alamat_tujuan" placeholder="Contoh: Jl. South Osaka Residence..." class="w-full px-4 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8]"></textarea>
                             </div>
@@ -398,6 +417,7 @@
                                     <th class="px-4 py-2 font-semibold">Jenis / Kategori</th>
                                     <th class="px-4 py-2 font-semibold">S/N / No. Aset</th>
                                     <th class="px-4 py-2 font-semibold">Keterangan</th>
+                                    <th class="px-4 py-2 font-semibold text-center">Jumlah</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
@@ -407,6 +427,7 @@
                                         <td class="px-4 py-2 text-xs font-semibold text-slate-700" x-text="item.kategori"></td>
                                         <td class="px-4 py-2 text-xs font-mono text-[#1d4ed8]" x-text="item.no_aset"></td>
                                         <td class="px-4 py-2 text-xs text-slate-500" x-text="item.keterangan || '-'"></td>
+                                        <td class="px-4 py-2 text-xs text-slate-700 font-bold text-center" x-text="item.jumlah || 1"></td>
                                     </tr>
                                 </template>
                             </tbody>
@@ -578,6 +599,7 @@
                   'kategori' => $i->kategori,
                   'no_aset' => $i->no_aset,
                   'keterangan' => $i->keterangan,
+                  'jumlah' => $i->jumlah,
                   'is_returned' => $i->is_returned
               ])->toArray()
           ])) !!},
@@ -592,6 +614,7 @@
                   'kategori' => $i->kategori,
                   'no_aset' => $i->no_aset,
                   'keterangan' => $i->keterangan,
+                  'jumlah' => $i->jumlah,
                   'is_returned' => $i->is_returned
               ])->toArray()
           ])) !!},
@@ -708,7 +731,14 @@
               tanggal: '{{ date('Y-m-d') }}',
               alamat_tujuan: '',
               keterangan: '',
-              selectedItems: []
+              selectedItems: [],
+              manualItems: []
+          },
+          addManualItem() {
+              this.formKeluar.manualItems.push({ nama: '', jumlah: 1 });
+          },
+          removeManualItem(index) {
+              this.formKeluar.manualItems.splice(index, 1);
           },
           inventoryRusak: [],
           isLoadingRusak: false,
@@ -757,18 +787,33 @@
                       Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal menyambung ke server', confirmButtonColor: '#1d4ed8' });
                   }
               } else {
-                  if (this.formKeluar.selectedItems.length === 0) {
-                      Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Pilih minimal 1 barang yang akan dikeluarkan!', confirmButtonColor: '#1d4ed8' });
+                  if (this.formKeluar.selectedItems.length === 0 && this.formKeluar.manualItems.length === 0) {
+                      Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Pilih minimal 1 barang rusak atau tambahkan barang manual!', confirmButtonColor: '#1d4ed8' });
                       return;
                   }
+                  
+                  // Validasi barang manual
+                  const invalidManual = this.formKeluar.manualItems.find(i => !i.nama || i.jumlah < 1);
+                  if (invalidManual) {
+                      Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Pastikan semua nama barang manual terisi dan jumlah minimal 1!', confirmButtonColor: '#1d4ed8' });
+                      return;
+                  }
+
                   const formData = new FormData();
                   formData.append('_token', '{{ csrf_token() }}');
                   formData.append('tanggal', this.formKeluar.tanggal);
                   formData.append('alamat_tujuan', this.formKeluar.alamat_tujuan);
                   formData.append('keterangan', this.formKeluar.keterangan);
+                  
                   this.formKeluar.selectedItems.forEach(id => {
                       formData.append('items[]', id);
                   });
+                  
+                  this.formKeluar.manualItems.forEach((mItem, idx) => {
+                      formData.append(`manual_items[${idx}][nama]`, mItem.nama);
+                      formData.append(`manual_items[${idx}][jumlah]`, mItem.jumlah);
+                  });
+
                   try {
                       const res = await fetch('{{ route('mutasi.keluar') }}', { method: 'POST', body: formData });
                       const json = await res.json();

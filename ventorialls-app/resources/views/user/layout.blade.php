@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'Ventorialls - Karyawan' }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('image/logo-biru.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
@@ -39,7 +40,7 @@
                         <i data-lucide="user-plus" class="w-4 h-4 mr-1.5"></i> Serah Terima
                     </a>
                     <a href="{{ route('user.peminjaman') }}" class="flex-1 flex items-center justify-center py-2 rounded-xl text-[13px] font-semibold whitespace-nowrap transition-all {{ request()->routeIs('user.peminjaman') ? 'bg-blue-50 text-[#1d4ed8] shadow-sm border border-blue-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50' }}">
-                        <i data-lucide="repeat" class="w-4 h-4 mr-1.5"></i> Peminjaman
+                        <i data-lucide="laptop" class="w-4 h-4 mr-1.5"></i> Peminjaman
                     </a>
                     <a href="{{ route('user.penukaran') }}" class="flex-1 flex items-center justify-center py-2 rounded-xl text-[13px] font-semibold whitespace-nowrap transition-all {{ request()->routeIs('user.penukaran') ? 'bg-blue-50 text-[#1d4ed8] shadow-sm border border-blue-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50' }}">
                         <i data-lucide="refresh-cw" class="w-4 h-4 mr-1.5"></i> Penukaran
@@ -87,7 +88,7 @@
             <span class="text-[10px] font-semibold">Serah Terima</span>
         </a>
         <a href="{{ route('user.peminjaman') }}" class="flex flex-col items-center justify-center w-full py-3 {{ request()->routeIs('user.peminjaman') ? 'text-[#1d4ed8]' : 'text-slate-500 hover:text-slate-800' }}">
-            <i data-lucide="repeat" class="w-5 h-5 mb-1 {{ request()->routeIs('user.peminjaman') ? 'fill-blue-100' : '' }}"></i>
+            <i data-lucide="laptop" class="w-5 h-5 mb-1 {{ request()->routeIs('user.peminjaman') ? 'fill-blue-100' : '' }}"></i>
             <span class="text-[10px] font-semibold">Peminjaman</span>
         </a>
         <a href="{{ route('user.penukaran') }}" class="flex flex-col items-center justify-center w-full py-3 {{ request()->routeIs('user.penukaran') ? 'text-[#1d4ed8]' : 'text-slate-500 hover:text-slate-800' }}">

@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\Approver;
 use App\Models\Inventory;
-use App\Models\User;
+use App\Models\StockMutation;
 use App\Models\Ticket;
 use App\Models\Transaction;
-use App\Models\StockMutation;
+use App\Models\TransactionItem;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class PageController extends Controller
@@ -16,36 +17,36 @@ class PageController extends Controller
     public function dashboard(Request $request)
     {
         $stats = [
-            'total_aset'     => Inventory::count(),
-            'aset_aktif'     => Inventory::where('status', 'Aktif')->count(),
-            'aset_disimpan'  => Inventory::where('status', 'Disimpan')->where('kondisi', 'Baik')->count(),
-            'aset_rusak'     => Inventory::where('status', 'Disimpan')->where('kondisi', 'Rusak')->count(),
-            'return_vendor'  => Inventory::where('status', 'Return Vendor')->count(),
+            'total_aset' => Inventory::count(),
+            'aset_aktif' => Inventory::where('status', 'Aktif')->count(),
+            'aset_disimpan' => Inventory::where('status', 'Disimpan')->where('kondisi', 'Baik')->count(),
+            'aset_rusak' => Inventory::where('status', 'Disimpan')->where('kondisi', 'Rusak')->count(),
+            'return_vendor' => Inventory::where('status', 'Return Vendor')->count(),
             'total_karyawan' => User::where('role', 'karyawan')->where('status_kerja', 'Aktif')->count(),
-            'tiket_pending'  => Transaction::where('status', 'menunggu_validasi')->count(),
+            'tiket_pending' => Transaction::where('status', 'menunggu_validasi')->count(),
         ];
 
         $breakdown_aktif = Inventory::where('status', 'Aktif')
             ->selectRaw('jenis as kategori, count(*) as count')
             ->groupBy('jenis')->pluck('count', 'kategori');
-            
+
         $breakdown_tersedia = Inventory::where('status', 'Disimpan')->where('kondisi', 'Baik')
             ->selectRaw('jenis as kategori, count(*) as count')
             ->groupBy('jenis')->pluck('count', 'kategori');
-            
+
         $breakdown_return = Inventory::where('status', 'Return Vendor')
             ->selectRaw('jenis as kategori, count(*) as count')
             ->groupBy('jenis')->pluck('count', 'kategori');
-            
+
         $breakdown_rusak = Inventory::where('status', 'Disimpan')->where('kondisi', 'Rusak')
             ->selectRaw('jenis as kategori, count(*) as count')
             ->groupBy('jenis')->pluck('count', 'kategori');
 
         // Data for Recent Activity Log
-        $recent_activities = \App\Models\ActivityLog::with('admin')->latest()->take(8)->get();
+        $recent_activities = ActivityLog::with('admin')->latest()->take(8)->get();
 
         // Data for Chart (Activity count per day for the last 7 days)
-        $chart_data = \App\Models\ActivityLog::selectRaw('DATE(created_at) as date, count(*) as count')
+        $chart_data = ActivityLog::selectRaw('DATE(created_at) as date, count(*) as count')
             ->where('created_at', '>=', now()->subDays(6)->startOfDay())
             ->groupBy('date')
             ->orderBy('date', 'asc')
@@ -64,16 +65,16 @@ class PageController extends Controller
         $filter_rusak = $request->get('filter_rusak', 'harian');
         $rusak_labels = [];
         $rusak_values = [];
-        
-        $queryRusak = \App\Models\Inventory::where('kondisi', 'Rusak');
-        
+
+        $queryRusak = Inventory::where('kondisi', 'Rusak');
+
         if ($filter_rusak == 'harian') {
             $data = clone $queryRusak;
             $data = $data->where('updated_at', '>=', now()->subDays(6)->startOfDay())
                 ->selectRaw('DATE(updated_at) as date, count(*) as count')
                 ->groupBy('date')
                 ->pluck('count', 'date');
-                
+
             for ($i = 6; $i >= 0; $i--) {
                 $dateStr = now()->subDays($i)->format('Y-m-d');
                 $rusak_labels[] = now()->subDays($i)->format('d M');
@@ -85,11 +86,11 @@ class PageController extends Controller
                 ->selectRaw('YEARWEEK(updated_at, 1) as week, count(*) as count')
                 ->groupBy('week')
                 ->pluck('count', 'week');
-                
+
             for ($i = 3; $i >= 0; $i--) {
                 $weekStart = now()->subWeeks($i)->startOfWeek();
                 $weekStr = $weekStart->format('oV'); // Year-Week according to ISO-8601
-                $rusak_labels[] = 'Mg ' . $weekStart->format('W');
+                $rusak_labels[] = 'Mg '.$weekStart->format('W');
                 $rusak_values[] = $data->has($weekStr) ? $data[$weekStr] : 0;
             }
         } elseif ($filter_rusak == 'bulanan') {
@@ -98,7 +99,7 @@ class PageController extends Controller
                 ->selectRaw('DATE_FORMAT(updated_at, "%Y-%m") as month, count(*) as count')
                 ->groupBy('month')
                 ->pluck('count', 'month');
-                
+
             for ($i = 5; $i >= 0; $i--) {
                 $monthStr = now()->subMonths($i)->format('Y-m');
                 $rusak_labels[] = now()->subMonths($i)->format('M y');
@@ -110,7 +111,7 @@ class PageController extends Controller
                 ->selectRaw('YEAR(updated_at) as year, count(*) as count')
                 ->groupBy('year')
                 ->pluck('count', 'year');
-                
+
             for ($i = 4; $i >= 0; $i--) {
                 $yearStr = now()->subYears($i)->format('Y');
                 $rusak_labels[] = $yearStr;
@@ -125,20 +126,26 @@ class PageController extends Controller
     public function master()
     {
         $inventories = Inventory::latest()->get();
+
         return view('admin.master', compact('inventories'));
     }
 
     public function karyawan()
     {
-        $karyawans = User::where('role', 'karyawan')->latest()->get()->map(function($user) {
-            $asets = $user->asetAktif();
+        // Eager load inventories yang statusnya Aktif
+        $karyawans = User::with(['inventories' => function ($query) {
+            $query->where('status', 'Aktif');
+        }])->where('role', 'karyawan')->latest()->get()->map(function ($user) {
+            // Gunakan collection hasil eager loading
+            $asets = $user->inventories;
             $user->total_aset = $asets->count();
             $user->daftar_aset = $asets;
+
             return $user;
         });
 
         $trashedKaryawans = User::onlyTrashed()->where('role', 'karyawan')->latest()->get();
-        $tls = \App\Models\Approver::where('role', 'TL')->get();
+        $tls = Approver::where('role', 'TL')->get();
 
         return view('admin.karyawan', compact('karyawans', 'trashedKaryawans', 'tls'));
     }
@@ -149,6 +156,7 @@ class PageController extends Controller
             ->where('status', 'menunggu_validasi')
             ->latest()
             ->get();
+
         return view('admin.validasi', compact('transactions'));
     }
 
@@ -157,16 +165,17 @@ class PageController extends Controller
         $serahTerima = Transaction::with('items')
             ->where('type', 'serah_terima')
             ->latest()->get();
-        $activeBorrowers = \App\Models\Inventory::where('status', 'Aktif')
+        $activeBorrowers = Inventory::where('status', 'Aktif')
             ->whereNotNull('pengguna')
             ->get()
             ->groupBy('pengguna')
             ->map(function ($items, $pengguna) {
-                $user = \App\Models\User::where('name', $pengguna)->first();
-                $history = \App\Models\Transaction::where('nama_pengaju', $pengguna)
-                            ->with('items')
-                            ->orderBy('created_at', 'desc')
-                            ->get();
+                $user = User::where('name', $pengguna)->first();
+                $history = Transaction::where('nama_pengaju', $pengguna)
+                    ->with('items')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+
                 return [
                     'id' => $user ? $user->id : uniqid(),
                     'peminjam' => $pengguna,
@@ -177,23 +186,23 @@ class PageController extends Controller
                     'no_ktp' => $user ? $user->no_ktp : '-',
                     'alamat_ktp' => $user ? $user->alamat_ktp : '-',
                     'domisili' => $user ? $user->domisili : '-',
-                    'barang' => $items->count() . ' Barang',
+                    'barang' => $items->count().' Barang',
                     'pinjam_dalam' => $items->where('hak_bawa_pulang', false)->count(),
-                    'pinjam_luar'  => $items->where('hak_bawa_pulang', true)->count(),
-                    'items_data' => $items->map(fn($i) => [
-                        'kategori'        => $i->jenis,
-                        'no_aset'         => $i->sn,
-                        'keterangan'      => $i->keterangan,
-                        'lokasi'          => $i->lokasi,
+                    'pinjam_luar' => $items->where('hak_bawa_pulang', true)->count(),
+                    'items_data' => $items->map(fn ($i) => [
+                        'kategori' => $i->jenis,
+                        'no_aset' => $i->sn,
+                        'keterangan' => $i->keterangan,
+                        'lokasi' => $i->lokasi,
                         'hak_bawa_pulang' => (bool) $i->hak_bawa_pulang,
                     ])->values(),
-                    'history' => $history->map(fn($t) => [
+                    'history' => $history->map(fn ($t) => [
                         'doc' => $t->doc_number,
                         'type' => $t->type,
                         'tanggal' => $t->created_at->format('d M Y'),
                         'tanggal_raw' => $t->created_at->format('Y-m-d'),
                         'status' => $t->status,
-                    ])->values()
+                    ])->values(),
                 ];
             })->values();
 
@@ -205,35 +214,36 @@ class PageController extends Controller
         $karyawans = User::where('role', 'karyawan')->where('status_kerja', 'Aktif')->orderBy('name')->get();
 
         // Helper to map items for frontend display
-        $mapItems = fn($i) => [
-            'kategori'        => $i->kategori,
-            'no_aset'         => $i->no_aset,
-            'keterangan'      => $i->keterangan,
-            'sn_lama'         => $i->sn_lama,
+        $mapItems = fn ($i) => [
+            'kategori' => $i->kategori,
+            'no_aset' => $i->no_aset,
+            'keterangan' => $i->keterangan,
+            'sn_lama' => $i->sn_lama,
             'hak_bawa_pulang' => false, // default for transaction items (not applicable)
         ];
 
         // Fetch history peminjaman/pengembalian
-        $historyPeminjaman = \App\Models\Transaction::with('items.inventory')
+        $historyPeminjaman = Transaction::with('items.inventory')
             ->whereIn('type', ['peminjaman', 'pengembalian'])
             ->latest()->get();
 
-        $approvers = \App\Models\Approver::all();
+        $approvers = Approver::all();
 
-        $tls = \App\Models\Approver::where('role', 'TL')->get();
+        $tls = Approver::where('role', 'TL')->get();
+
         return view('admin.transaksi', compact('serahTerima', 'activeBorrowers', 'penukaran', 'historyPeminjaman', 'karyawans', 'mapItems', 'approvers', 'tls'));
     }
 
     public function mutasi()
     {
-        $masuk  = StockMutation::where('type', 'masuk')->with('creator')->latest()->get();
-        
-        $keluarAll = \App\Models\Transaction::with('items.inventory')->where('type', 'barang_keluar')->latest()->get();
+        $masuk = StockMutation::where('type', 'masuk')->with('creator')->latest()->get();
+
+        $keluarAll = Transaction::with('items.inventory')->where('type', 'barang_keluar')->latest()->get();
         $keluarActive = collect();
         $keluarHistory = collect();
 
         foreach ($keluarAll as $t) {
-            $allReturned = $t->items->count() > 0 && $t->items->every(fn($item) => $item->is_returned);
+            $allReturned = $t->items->count() > 0 && $t->items->every(fn ($item) => $item->is_returned);
             if ($allReturned) {
                 $keluarHistory->push($t);
             } else {
@@ -254,7 +264,7 @@ class PageController extends Controller
             $inventory = Inventory::where('sn', $q)->first();
             if ($inventory) {
                 // Ambil semua transaksi yang menyebut no_aset ini (di TransactionItem, kolomnya no_aset atau sn_lama)
-                $histori = \App\Models\TransactionItem::with(['transaction'])
+                $histori = TransactionItem::with(['transaction'])
                     ->where('no_aset', $inventory->sn)
                     ->orWhere('sn_lama', $q)
                     ->latest()
@@ -268,6 +278,7 @@ class PageController extends Controller
     public function log()
     {
         $logs = ActivityLog::with('admin')->latest()->paginate(50);
+
         return view('admin.log', compact('logs'));
     }
 
@@ -276,13 +287,14 @@ class PageController extends Controller
         $id = request('id');
         $ticket = null;
         if ($id) {
-            $ticket = \App\Models\Ticket::where('ticket_code', $id)
+            $ticket = Ticket::where('ticket_code', $id)
                 ->where('type', str_replace('-', '_', $type))
                 ->where('status', 'menunggu_diisi')
                 ->first();
         }
-        $approvers = \App\Models\Approver::all();
-        $tls = \App\Models\Approver::where('role', 'TL')->get();
+        $approvers = Approver::all();
+        $tls = Approver::where('role', 'TL')->get();
+
         return view('user.tiket', compact('type', 'id', 'ticket', 'approvers', 'tls'));
     }
 
@@ -297,7 +309,7 @@ class PageController extends Controller
             $inventory = Inventory::where('sn', $sn)->first();
             if ($inventory) {
                 // Ambil semua transaksi yang menyebut no_aset ini
-                $histori = \App\Models\TransactionItem::with(['transaction'])
+                $histori = TransactionItem::with(['transaction'])
                     ->where('no_aset', $sn)
                     ->orWhere('sn_lama', $sn)
                     ->latest()
@@ -319,13 +331,14 @@ class PageController extends Controller
         $tickets = Ticket::where('type', 'serah_terima')
             ->where(function ($query) {
                 $query->whereIn('status', ['menunggu_diisi', 'menunggu_validasi'])
-                      ->orWhere(function ($q) {
-                          $q->where('status', 'selesai')
+                    ->orWhere(function ($q) {
+                        $q->where('status', 'selesai')
                             ->whereDate('updated_at', today());
-                      });
+                    });
             })
             ->orderByRaw("CASE WHEN status IN ('menunggu_diisi', 'menunggu_validasi') THEN 1 ELSE 2 END")
             ->latest()->get();
+
         return view('user.serah-terima', compact('tickets'));
     }
 
@@ -334,13 +347,14 @@ class PageController extends Controller
         $tickets = Ticket::where('type', 'peminjaman')
             ->where(function ($query) {
                 $query->whereIn('status', ['menunggu_diisi', 'menunggu_validasi'])
-                      ->orWhere(function ($q) {
-                          $q->where('status', 'selesai')
+                    ->orWhere(function ($q) {
+                        $q->where('status', 'selesai')
                             ->whereDate('updated_at', today());
-                      });
+                    });
             })
             ->orderByRaw("CASE WHEN status IN ('menunggu_diisi', 'menunggu_validasi') THEN 1 ELSE 2 END")
             ->latest()->get();
+
         return view('user.peminjaman', compact('tickets'));
     }
 
@@ -349,13 +363,14 @@ class PageController extends Controller
         $tickets = Ticket::where('type', 'penukaran')
             ->where(function ($query) {
                 $query->whereIn('status', ['menunggu_diisi', 'menunggu_validasi'])
-                      ->orWhere(function ($q) {
-                          $q->where('status', 'selesai')
+                    ->orWhere(function ($q) {
+                        $q->where('status', 'selesai')
                             ->whereDate('updated_at', today());
-                      });
+                    });
             })
             ->orderByRaw("CASE WHEN status IN ('menunggu_diisi', 'menunggu_validasi') THEN 1 ELSE 2 END")
             ->latest()->get();
+
         return view('user.penukaran', compact('tickets'));
     }
 }

@@ -194,9 +194,9 @@
                     @foreach($transaction->items as $index => $item)
                     <tr>
                         <td style="text-align: center;">{{ $index + 1 }}</td>
-                        <td>{{ ucfirst($item->kategori) }} {{ $item->merk }}</td>
+                        <td>{{ ucfirst($item->kategori) }} {{ $item->inventory ? $item->inventory->merk : '' }}</td>
                         <td style="text-align: center;">{{ $item->no_aset ?: '-' }}</td>
-                        <td style="text-align: center;">1</td>
+                        <td style="text-align: center;">{{ $item->jumlah ?? 1 }}</td>
                         <td>{{ $item->keterangan ?: 'Rusak' }}</td>
                     </tr>
                     @endforeach

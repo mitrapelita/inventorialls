@@ -13,13 +13,13 @@ class AdminSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@mptb.co'],
             [
-                'name'         => 'IT Admin',
-                'email'        => 'admin@mptb.co',
-                'password'     => Hash::make('admin123'),
-                'role'         => 'admin',
-                'id_karyawan'  => 'ADM-001',
-                'department'   => 'IT',
-                'posisi'       => 'IT Administrator',
+                'name' => 'IT Admin',
+                'email' => 'admin@mptb.co',
+                'password' => Hash::make('admin123'),
+                'role' => 'admin',
+                'id_karyawan' => 'ADM-001',
+                'department' => 'IT',
+                'posisi' => 'IT Administrator',
                 'status_kerja' => 'Aktif',
             ]
         );

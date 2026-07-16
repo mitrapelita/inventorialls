@@ -26,11 +26,11 @@ class ActivityLog extends Model
     /**
      * Helper statik untuk mencatat log dengan mudah dari mana saja.
      *
-     * @param string $action    created|updated|deleted|approved|rejected|returned
-     * @param string $modelType Nama class model yang diubah (misal: 'Transaction')
-     * @param int|null $modelId  ID record yang berubah
-     * @param string $description Deskripsi singkat aksi yang terjadi
-     * @param array|null $meta  Data tambahan (opsional)
+     * @param  string  $action  created|updated|deleted|approved|rejected|returned
+     * @param  string  $modelType  Nama class model yang diubah (misal: 'Transaction')
+     * @param  int|null  $modelId  ID record yang berubah
+     * @param  string  $description  Deskripsi singkat aksi yang terjadi
+     * @param  array|null  $meta  Data tambahan (opsional)
      */
     public static function record(
         string $action,
@@ -40,12 +40,12 @@ class ActivityLog extends Model
         ?array $meta = null
     ): self {
         return self::create([
-            'admin_id'    => auth()->id(),
-            'action'      => $action,
-            'model_type'  => $modelType,
-            'model_id'    => $modelId,
+            'admin_id' => auth()->id(),
+            'action' => $action,
+            'model_type' => $modelType,
+            'model_id' => $modelId,
             'description' => $description,
-            'meta'        => $meta,
+            'meta' => $meta,
         ]);
     }
 }

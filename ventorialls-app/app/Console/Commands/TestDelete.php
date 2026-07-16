@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Controllers\TransaksiController;
 use Illuminate\Console\Command;
+use Illuminate\Http\Request;
 
 class TestDelete extends Command
 {
@@ -25,14 +27,14 @@ class TestDelete extends Command
      */
     public function handle()
     {
-        $request = \Illuminate\Http\Request::create('/admin/transaksi/bulk-delete', 'POST', ['ids' => [2], 'pin' => '447747']);
-        $controller = new \App\Http\Controllers\TransaksiController();
+        $request = Request::create('/admin/transaksi/bulk-delete', 'POST', ['ids' => [2], 'pin' => '447747']);
+        $controller = new TransaksiController;
         try {
             $response = $controller->bulkDestroy($request);
-            $this->info("Response Content: " . $response->getContent());
+            $this->info('Response Content: '.$response->getContent());
         } catch (\Exception $e) {
-            $this->error("ERROR: " . $e->getMessage());
-            $this->error("TRACE: " . $e->getTraceAsString());
+            $this->error('ERROR: '.$e->getMessage());
+            $this->error('TRACE: '.$e->getTraceAsString());
         }
     }
 }

@@ -14,6 +14,7 @@ class TransactionItem extends Model
         'inventory_id', // ditambahkan untuk fitur tracking barang
         'kategori',    // laptop, charger, mouse, lan_extender, headset, hp_root, audio_jack
         'no_aset',
+        'jumlah',
         'sn_lama',     // khusus penukaran: SN aset lama yang diretur
         'alasan_penukaran',
         'penjelasan_kerusakan',

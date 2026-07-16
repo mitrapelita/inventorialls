@@ -3,15 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Prunable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Prunable;
-
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes, Prunable;
+    use HasFactory, Notifiable, Prunable, SoftDeletes;
 
     protected $fillable = [
         'name', 'email', 'password',
@@ -61,6 +60,12 @@ class User extends Authenticatable
     public function asetAktif()
     {
         return Inventory::where('pengguna', $this->name)->where('status', 'Aktif')->get();
+    }
+
+    // Relasi: Inventaris yang digunakan oleh Karyawan ini
+    public function inventories()
+    {
+        return $this->hasMany(Inventory::class, 'pengguna', 'name');
     }
 
     public function prunable()

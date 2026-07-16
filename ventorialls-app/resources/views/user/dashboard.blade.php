@@ -98,7 +98,7 @@
             <div class="flex-shrink-0 flex items-center justify-center relative w-16 h-16 sm:w-full sm:h-auto sm:flex-1 mr-4 sm:mr-0">
                 <div class="hidden sm:block absolute inset-0 m-auto w-24 h-24 rounded-full border-t-2 border-r-2 border-amber-500 opacity-20 transform -rotate-45 group-hover:rotate-0 transition-all duration-500"></div>
                 <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-amber-100 to-amber-50 text-amber-600 rounded-full flex items-center justify-center shadow-inner relative z-10">
-                    <i data-lucide="headphones" class="w-6 h-6 sm:w-8 sm:h-8 drop-shadow-sm"></i>
+                    <i data-lucide="laptop" class="w-6 h-6 sm:w-8 sm:h-8 drop-shadow-sm"></i>
                 </div>
             </div>
             <div class="sm:mt-4 w-full flex-1">

@@ -18,7 +18,7 @@
             
             <div class="flex justify-between items-start mb-3 relative z-10">
                 <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600">
-                    <i data-lucide="repeat" class="w-4 h-4"></i>
+                    <i data-lucide="laptop" class="w-4 h-4"></i>
                 </div>
                 <span class="px-2 py-1 bg-{{ $statusColor }}-100 text-{{ $statusColor }}-700 text-[9px] font-bold uppercase rounded-md border border-{{ $statusColor }}-200">
                     {{ $statusLabel }}

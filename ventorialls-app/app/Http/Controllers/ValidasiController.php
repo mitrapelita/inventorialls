@@ -5,11 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\Inventory;
 use App\Models\Transaction;
-use App\Models\User;
 use App\Models\TransactionItem;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class ValidasiController extends Controller
 {
@@ -34,9 +35,9 @@ class ValidasiController extends Controller
                         $changes[] = "SN Lama diubah dari {$item->sn_lama} menjadi {$itemData['sn_lama']}";
                         $item->sn_lama = $itemData['sn_lama'];
                     }
-                    
-                    if (!empty($changes)) {
-                        $item->keterangan = ($item->keterangan ? $item->keterangan . ' | ' : '') . '[Admin Edit: ' . implode(', ', $changes) . ']';
+
+                    if (! empty($changes)) {
+                        $item->keterangan = ($item->keterangan ? $item->keterangan.' | ' : '').'[Admin Edit: '.implode(', ', $changes).']';
                         $item->save();
                     }
                 }
@@ -51,48 +52,48 @@ class ValidasiController extends Controller
             ->first();
 
         // Jika ini transaksi serah terima (registrasi karyawan), kita buat/update data Karyawannya
-        if ($transaction->type === 'serah_terima' && !empty($transaction->catatan_admin)) {
+        if ($transaction->type === 'serah_terima' && ! empty($transaction->catatan_admin)) {
             $extra = json_decode($transaction->catatan_admin, true);
             if (is_array($extra)) {
-                if (!$karyawan) {
+                if (! $karyawan) {
                     $karyawan = User::create([
-                        'name'         => $transaction->nama_pengaju,
-                        'role'         => 'karyawan',
-                        'email'        => strtolower(str_replace(' ', '.', $transaction->nama_pengaju)) . rand(10, 99) . '@mptb.co',
-                        'password'     => Hash::make('karyawan123'),
-                        'department'   => $transaction->department,
-                        'kontak'       => $transaction->no_wa,
-                        'nama_tl'      => $extra['nama_tl'] ?? null,
-                        'no_ktp'       => $extra['no_ktp'] ?? null,
-                        'alamat_ktp'   => $extra['alamat_ktp'] ?? null,
-                        'domisili'     => $extra['domisili'] ?? null,
-                        'ruangan'      => $extra['ruangan'] ?? null,
+                        'name' => $transaction->nama_pengaju,
+                        'role' => 'karyawan',
+                        'email' => strtolower(str_replace(' ', '.', $transaction->nama_pengaju)).rand(10, 99).'@mptb.co',
+                        'password' => Hash::make('karyawan123'),
+                        'department' => $transaction->department,
+                        'kontak' => $transaction->no_wa,
+                        'nama_tl' => $extra['nama_tl'] ?? null,
+                        'no_ktp' => $extra['no_ktp'] ?? null,
+                        'alamat_ktp' => $extra['alamat_ktp'] ?? null,
+                        'domisili' => $extra['domisili'] ?? null,
+                        'ruangan' => $extra['ruangan'] ?? null,
                         'status_kerja' => 'Aktif',
                     ]);
                 } else {
                     $karyawan->update([
                         'department' => $transaction->department,
-                        'kontak'     => $transaction->no_wa ?? $karyawan->kontak,
-                        'nama_tl'    => $extra['nama_tl'] ?? $karyawan->nama_tl,
-                        'no_ktp'     => $extra['no_ktp'] ?? $karyawan->no_ktp,
+                        'kontak' => $transaction->no_wa ?? $karyawan->kontak,
+                        'nama_tl' => $extra['nama_tl'] ?? $karyawan->nama_tl,
+                        'no_ktp' => $extra['no_ktp'] ?? $karyawan->no_ktp,
                         'alamat_ktp' => $extra['alamat_ktp'] ?? $karyawan->alamat_ktp,
-                        'domisili'   => $extra['domisili'] ?? $karyawan->domisili,
-                        'ruangan'    => $extra['ruangan'] ?? $karyawan->ruangan,
+                        'domisili' => $extra['domisili'] ?? $karyawan->domisili,
+                        'ruangan' => $extra['ruangan'] ?? $karyawan->ruangan,
                     ]);
                 }
-                
+
                 // Bersihkan catatan_admin agar rapi (atau bisa dibiarkan saja)
                 $transaction->catatan_admin = null;
             }
-        } elseif ($transaction->type === 'peminjaman' && $transaction->borrow_type === 'luar' && !empty($transaction->catatan_admin)) {
+        } elseif ($transaction->type === 'peminjaman' && $transaction->borrow_type === 'luar' && ! empty($transaction->catatan_admin)) {
             $extra = json_decode($transaction->catatan_admin, true);
             if (is_array($extra) && $karyawan) {
                 $karyawan->update([
-                    'nama_tl'    => $extra['nama_tl'] ?? $karyawan->nama_tl,
-                    'no_ktp'     => $extra['no_ktp'] ?? $karyawan->no_ktp,
+                    'nama_tl' => $extra['nama_tl'] ?? $karyawan->nama_tl,
+                    'no_ktp' => $extra['no_ktp'] ?? $karyawan->no_ktp,
                     'alamat_ktp' => $extra['alamat_ktp'] ?? $karyawan->alamat_ktp,
-                    'domisili'   => $extra['domisili'] ?? $karyawan->domisili,
-                    'ruangan'    => $extra['ruangan'] ?? $karyawan->ruangan,
+                    'domisili' => $extra['domisili'] ?? $karyawan->domisili,
+                    'ruangan' => $extra['ruangan'] ?? $karyawan->ruangan,
                 ]);
                 $transaction->catatan_admin = null;
             }
@@ -101,8 +102,8 @@ class ValidasiController extends Controller
         $docNumber = Transaction::generateDocNumber($transaction->type);
 
         $transaction->update([
-            'status'       => 'disetujui',
-            'doc_number'   => $docNumber,
+            'status' => 'disetujui',
+            'doc_number' => $docNumber,
             'validated_by' => Auth::id(),
             'validated_at' => now(),
         ]);
@@ -113,14 +114,16 @@ class ValidasiController extends Controller
         // ─ Update kepemilikan Inventory ────────────────────────────────────
         if (in_array($transaction->type, ['serah_terima', 'peminjaman'])) {
             foreach ($transaction->items as $item) {
-                if (empty($item->no_aset)) continue;
+                if (empty($item->no_aset)) {
+                    continue;
+                }
                 $updateData = [
-                    'pengguna'       => $transaction->nama_pengaju,
-                    'kontak'         => $transaction->no_wa,
-                    'department'     => $transaction->department,
-                    'team_leader'    => $karyawan?->nama_tl,
+                    'pengguna' => $transaction->nama_pengaju,
+                    'kontak' => $transaction->no_wa,
+                    'department' => $transaction->department,
+                    'team_leader' => $karyawan?->nama_tl,
                     'tanggal_signin' => now()->toDateString(),
-                    'status'         => 'Aktif',
+                    'status' => 'Aktif',
                 ];
 
                 if ($transaction->type === 'peminjaman' && $transaction->borrow_type === 'luar') {
@@ -129,7 +132,7 @@ class ValidasiController extends Controller
 
                 // Cek apakah item sudah ada di Master Data (Inventory)
                 $inv = Inventory::where('sn', $item->no_aset)->first();
-                if (!$inv) {
+                if (! $inv) {
                     // Ekstrak merk dari keterangan jika ada (misal: "Merk: Lenovo")
                     $merk = 'Tidak Diketahui';
                     if (preg_match('/Merk:\s*(.*)/', $item->keterangan ?? '', $matches)) {
@@ -138,20 +141,20 @@ class ValidasiController extends Controller
 
                     // Buat aset baru di Master Data karena aset tidak ditemukan
                     Inventory::create([
-                        'jenis'          => $item->kategori,
-                        'merk'           => $merk,
-                        'sn'             => $item->no_aset,
-                        'kondisi'        => 'Baik',
-                        'status'         => 'Aktif',
-                        'kepemilikan'    => 'PTMPTB',
-                        'pengguna'       => $transaction->nama_pengaju,
-                        'kontak'         => $transaction->no_wa,
-                        'department'     => $transaction->department,
-                        'team_leader'    => $karyawan?->nama_tl,
-                        'tanggal_masuk'  => now()->toDateString(),
+                        'jenis' => $item->kategori,
+                        'merk' => $merk,
+                        'sn' => $item->no_aset,
+                        'kondisi' => 'Baik',
+                        'status' => 'Aktif',
+                        'kepemilikan' => 'PTMPTB',
+                        'pengguna' => $transaction->nama_pengaju,
+                        'kontak' => $transaction->no_wa,
+                        'department' => $transaction->department,
+                        'team_leader' => $karyawan?->nama_tl,
+                        'tanggal_masuk' => now()->toDateString(),
                         'tanggal_signin' => now()->toDateString(),
-                        'lokasi'         => 'Di MPTB',
-                        'hak_bawa_pulang'=> ($transaction->type === 'peminjaman' && $transaction->borrow_type === 'luar')
+                        'lokasi' => 'Di MPTB',
+                        'hak_bawa_pulang' => ($transaction->type === 'peminjaman' && $transaction->borrow_type === 'luar'),
                     ]);
                 } else {
                     // Update kepemilikan jika aset sudah ada
@@ -163,32 +166,32 @@ class ValidasiController extends Controller
         if ($transaction->type === 'penukaran') {
             foreach ($transaction->items as $item) {
                 // Aset lama → kembalikan ke gudang, kondisi rusak
-                if (!empty($item->sn_lama)) {
+                if (! empty($item->sn_lama)) {
                     $updateOldData = [
-                        'pengguna'   => null,
-                        'kontak'     => null,
+                        'pengguna' => null,
+                        'kontak' => null,
                         'department' => null,
-                        'status'     => 'Disimpan',
-                        'lokasi'     => 'Ruangan IT',
-                        'kondisi'    => ($item->alasan_penukaran === 'rusak') ? 'Rusak' : 'Baik',
+                        'status' => 'Disimpan',
+                        'lokasi' => 'Ruangan IT',
+                        'kondisi' => ($item->alasan_penukaran === 'rusak') ? 'Rusak' : 'Baik',
                     ];
 
-                    if ($item->alasan_penukaran === 'rusak' && !empty($item->penjelasan_kerusakan)) {
+                    if ($item->alasan_penukaran === 'rusak' && ! empty($item->penjelasan_kerusakan)) {
                         $updateOldData['keterangan'] = $item->penjelasan_kerusakan;
                     }
 
                     Inventory::where('sn', $item->sn_lama)->update($updateOldData);
                 }
                 // Aset baru → diberikan ke karyawan
-                if (!empty($item->no_aset)) {
+                if (! empty($item->no_aset)) {
                     Inventory::where('sn', $item->no_aset)->update([
-                        'pengguna'       => $transaction->nama_pengaju,
-                        'kontak'         => $transaction->no_wa,
-                        'department'     => $transaction->department,
-                        'team_leader'    => $karyawan?->nama_tl,
+                        'pengguna' => $transaction->nama_pengaju,
+                        'kontak' => $transaction->no_wa,
+                        'department' => $transaction->department,
+                        'team_leader' => $karyawan?->nama_tl,
                         'tanggal_signin' => now()->toDateString(),
-                        'status'         => 'Aktif',
-                        'lokasi'         => 'Di MPTB',
+                        'status' => 'Aktif',
+                        'lokasi' => 'Di MPTB',
                     ]);
                 }
             }
@@ -213,9 +216,9 @@ class ValidasiController extends Controller
         ]);
 
         $transaction->update([
-            'status'        => 'ditolak',
-            'validated_by'  => Auth::id(),
-            'validated_at'  => now(),
+            'status' => 'ditolak',
+            'validated_by' => Auth::id(),
+            'validated_at' => now(),
             'catatan_admin' => $request->catatan_admin,
         ]);
 
@@ -231,32 +234,31 @@ class ValidasiController extends Controller
         return back()->with('success', "Transaksi dari {$transaction->nama_pengaju} telah ditolak.");
     }
 
-    
     public function quickRegister(Request $request)
     {
         // Filter baris item yang kosong (tidak diisi merk/sn sama sekali)
         $items = $request->input('items', []);
-        $filteredItems = array_filter($items, function($item) {
-            return !empty($item['sn']) || !empty($item['merk']);
+        $filteredItems = array_filter($items, function ($item) {
+            return ! empty($item['sn']) || ! empty($item['merk']);
         });
         $request->merge(['items' => array_values($filteredItems)]);
 
         $request->validate([
-            'pengguna'       => ['required', 'string', 'max:255'],
-            'kontak'         => ['nullable', 'string', 'max:20'],
-            'department'     => ['nullable', 'string', 'max:100'],
-            'id_karyawan'    => ['nullable', 'string', 'max:50'],
-            'nama_tl'        => ['nullable', 'string', 'max:255'],
-            'no_ktp'         => ['nullable', 'string', 'max:50'],
-            'alamat_ktp'     => ['nullable', 'string'],
-            'domisili'       => ['nullable', 'string'],
-            'ruangan'        => ['nullable', 'string', 'max:255'],
-            
-            'items'          => ['nullable', 'array'],
-            'items.*.jenis'  => ['required', 'string', 'max:100'],
-            'items.*.merk'   => ['nullable', 'string', 'max:255'],
-            'items.*.sn'     => ['nullable', 'string', 'max:100', 'unique:inventories,sn'],
-            'items.*.kondisi'=> ['required', 'in:Baik,Rusak'],
+            'pengguna' => ['required', 'string', 'max:255'],
+            'kontak' => ['nullable', 'string', 'max:20'],
+            'department' => ['nullable', 'string', 'max:100'],
+            'id_karyawan' => ['nullable', 'string', 'max:50'],
+            'nama_tl' => ['nullable', 'string', 'max:255'],
+            'no_ktp' => ['nullable', 'string', 'max:50'],
+            'alamat_ktp' => ['nullable', 'string'],
+            'domisili' => ['nullable', 'string'],
+            'ruangan' => ['nullable', 'string', 'max:255'],
+
+            'items' => ['nullable', 'array'],
+            'items.*.jenis' => ['required', 'string', 'max:100'],
+            'items.*.merk' => ['nullable', 'string', 'max:255'],
+            'items.*.sn' => ['nullable', 'string', 'max:100', 'unique:inventories,sn'],
+            'items.*.kondisi' => ['required', 'in:Baik,Rusak'],
             'items.*.status' => ['required', 'in:Aktif,Disimpan,Return Vendor'],
         ]);
 
@@ -265,82 +267,98 @@ class ValidasiController extends Controller
             ->where('name', $request->pengguna)
             ->first();
 
-        if (!$karyawan) {
+        if (! $karyawan) {
             $karyawan = User::create([
-                'name'         => $request->pengguna,
-                'role'         => 'karyawan',
-                'email'        => strtolower(str_replace(' ', '.', $request->pengguna)) . rand(10, 99) . '@mptb.co',
-                'password'     => Hash::make('karyawan123'),
-                'department'   => $request->department,
-                'kontak'       => $request->kontak,
-                'id_karyawan'  => $request->id_karyawan,
-                'nama_tl'      => $request->nama_tl,
-                'no_ktp'       => $request->no_ktp,
-                'alamat_ktp'   => $request->alamat_ktp,
-                'domisili'     => $request->domisili,
-                'ruangan'      => $request->ruangan,
+                'name' => $request->pengguna,
+                'role' => 'karyawan',
+                'email' => strtolower(str_replace(' ', '.', $request->pengguna)).rand(10, 99).'@mptb.co',
+                'password' => Hash::make('karyawan123'),
+                'department' => $request->department,
+                'kontak' => $request->kontak,
+                'id_karyawan' => $request->id_karyawan,
+                'nama_tl' => $request->nama_tl,
+                'no_ktp' => $request->no_ktp,
+                'alamat_ktp' => $request->alamat_ktp,
+                'domisili' => $request->domisili,
+                'ruangan' => $request->ruangan,
                 'status_kerja' => 'Aktif',
             ]);
         } else {
             // Update jika ada field kosong (atau update semuanya jika dikirim)
             $updates = [];
-            if ($request->kontak) $updates['kontak'] = $request->kontak;
-            if ($request->department) $updates['department'] = $request->department;
-            if ($request->id_karyawan) $updates['id_karyawan'] = $request->id_karyawan;
-            if ($request->nama_tl) $updates['nama_tl'] = $request->nama_tl;
-            if ($request->no_ktp) $updates['no_ktp'] = $request->no_ktp;
-            if ($request->alamat_ktp) $updates['alamat_ktp'] = $request->alamat_ktp;
-            if ($request->domisili) $updates['domisili'] = $request->domisili;
-            if ($request->ruangan) $updates['ruangan'] = $request->ruangan;
-            
-            if (!empty($updates)) {
+            if ($request->kontak) {
+                $updates['kontak'] = $request->kontak;
+            }
+            if ($request->department) {
+                $updates['department'] = $request->department;
+            }
+            if ($request->id_karyawan) {
+                $updates['id_karyawan'] = $request->id_karyawan;
+            }
+            if ($request->nama_tl) {
+                $updates['nama_tl'] = $request->nama_tl;
+            }
+            if ($request->no_ktp) {
+                $updates['no_ktp'] = $request->no_ktp;
+            }
+            if ($request->alamat_ktp) {
+                $updates['alamat_ktp'] = $request->alamat_ktp;
+            }
+            if ($request->domisili) {
+                $updates['domisili'] = $request->domisili;
+            }
+            if ($request->ruangan) {
+                $updates['ruangan'] = $request->ruangan;
+            }
+
+            if (! empty($updates)) {
                 $karyawan->update($updates);
             }
         }
 
         // Buat Transaksi jika ada items
-        if (!empty($request->items)) {
+        if (! empty($request->items)) {
             $transaction = Transaction::create([
-                'ticket_id'      => null,
-                'doc_number'     => null, // Diisi saat disetujui
-                'type'           => 'serah_terima',
-                'borrow_type'    => null,
-                'nama_pengaju'   => $karyawan->name,
-                'department'     => $karyawan->department,
-                'no_wa'          => $karyawan->kontak,
-                'status'         => 'menunggu_validasi',
-                'catatan_admin'  => null,
+                'ticket_id' => null,
+                'doc_number' => null, // Diisi saat disetujui
+                'type' => 'serah_terima',
+                'borrow_type' => null,
+                'nama_pengaju' => $karyawan->name,
+                'department' => $karyawan->department,
+                'no_wa' => $karyawan->kontak,
+                'status' => 'menunggu_validasi',
+                'catatan_admin' => null,
             ]);
 
             foreach ($request->items as $itemData) {
                 // Generate fallback untuk merk dan sn
-                $merk = !empty($itemData['merk']) ? $itemData['merk'] : 'Tidak Diketahui';
-                $sn = !empty($itemData['sn']) ? $itemData['sn'] : 'TBA-' . strtoupper(\Illuminate\Support\Str::random(6));
+                $merk = ! empty($itemData['merk']) ? $itemData['merk'] : 'Tidak Diketahui';
+                $sn = ! empty($itemData['sn']) ? $itemData['sn'] : 'TBA-'.strtoupper(Str::random(6));
 
                 // Buat Item Transaksi Saja
                 TransactionItem::create([
                     'transaction_id' => $transaction->id,
-                    'kategori'       => $itemData['jenis'],
-                    'no_aset'        => $sn,
-                    'keterangan'     => 'Registrasi & Peminjaman Cepat dari Tools Validasi | Merk: ' . $merk,
+                    'kategori' => $itemData['jenis'],
+                    'no_aset' => $sn,
+                    'keterangan' => 'Registrasi & Peminjaman Cepat dari Tools Validasi | Merk: '.$merk,
                 ]);
             }
         }
 
         ActivityLog::record(
             'created', 'Transaction', $transaction->id,
-            'Admin membuat Transaksi Peminjaman Cepat (' . count($request->items) . ' barang) untuk ' . $karyawan->name,
+            'Admin membuat Transaksi Peminjaman Cepat ('.count($request->items).' barang) untuk '.$karyawan->name,
             ['type' => 'peminjaman']
         );
 
-        return back()->with('success', count($request->items) . ' Aset baru berhasil ditambahkan dan masuk ke Pusat Validasi.');
+        return back()->with('success', count($request->items).' Aset baru berhasil ditambahkan dan masuk ke Pusat Validasi.');
     }
 
     public function deleteItem(Request $request, $id)
     {
         $item = TransactionItem::findOrFail($id);
         $item->delete();
+
         return response()->json(['success' => true]);
     }
-
 }

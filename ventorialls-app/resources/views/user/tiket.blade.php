@@ -113,7 +113,7 @@
                             <button type="button" @click="cariKaryawan()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 sm:px-4 py-1.5 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-colors border border-slate-200">Cek data</button>
                         </div>
                         <p class="text-[11px] text-slate-500 mt-1" x-show="!karyawanFound && !showInputForm">
-                            <i data-lucide="info" class="w-3 h-3 inline"></i> Jika data tidak ditemukan, silakan <button type="button" @click="showInputForm = true" class="text-[#1d4ed8] font-bold hover:underline">Isi Manual Form Karyawan</button>.
+                            <i data-lucide="info" class="w-3 h-3 inline text-amber-500"></i> Jika data tidak ditemukan, silakan <span class="text-amber-600 font-bold">Lapor Admin</span>.
                         </p>
                     </div>
 
@@ -338,8 +338,8 @@
                         </div>
                     @endif
 
-                    @if($type === 'peminjaman')
-                        @if(isset($ticket) && $ticket->borrow_type === 'luar')
+                    @if($type === 'peminjaman' || $type === 'serah-terima')
+                        @if($type === 'peminjaman' && isset($ticket) && $ticket->borrow_type === 'luar')
                         <!-- Peminjaman Eksternal (Luar) -->
                         <div x-show="karyawanFound && showInputForm" style="display:none;" x-transition class="space-y-4 border border-slate-200 bg-slate-50 p-4 rounded-xl">
                             <p class="text-xs text-slate-500 mb-2">Centang aset yang akan dibawa keluar (hanya menampilkan aset yang sedang dipinjam):</p>
@@ -382,7 +382,7 @@
                         </div>
                         @else
                         <!-- Peminjaman Internal -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="items-container" x-show="karyawanFound && showInputForm" style="display:none;" x-transition>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="items-container" @if($type !== 'serah-terima') x-show="karyawanFound && showInputForm" style="display:none;" x-transition @endif>
                             @php
                                 $kategoriList = [
                                     'laptop' => 'Laptop',
@@ -505,14 +505,15 @@
                             this.karyawanItems = [];
                             this.activeSwapCategories = [];
                             this.karyawanFound = false;
-                            this.showInputForm = true;
+                            
+                            this.showInputForm = false;
                             Swal.fire({
                                 toast: true,
                                 position: 'top',
                                 showConfirmButton: false,
                                 timer: 4000,
-                                icon: 'info',
-                                title: 'Data tidak ditemukan, silakan isi manual'
+                                icon: 'warning',
+                                title: 'Data tidak ditemukan, silakan lapor admin'
                             });
                         }
                     } catch (error) {

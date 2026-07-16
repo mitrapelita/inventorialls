@@ -16,6 +16,7 @@ class AuthController extends Controller
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
+
         return view('auth.login');
     }
 
@@ -26,7 +27,7 @@ class AuthController extends Controller
     {
         $credentials = $request->validate([
             'id_karyawan' => ['required', 'string'],
-            'password'    => ['required'],
+            'password' => ['required'],
         ]);
 
         $remember = $request->boolean('remember');
@@ -35,12 +36,14 @@ class AuthController extends Controller
             // Pastikan user yang login adalah admin
             if (Auth::user()->role !== 'admin') {
                 Auth::logout();
+
                 return back()->withErrors([
                     'id_karyawan' => 'Akun ini tidak memiliki akses admin.',
                 ])->onlyInput('id_karyawan');
             }
 
             $request->session()->regenerate();
+
             return redirect()->intended(route('dashboard'));
         }
 
@@ -57,6 +60,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect()->route('login');
     }
 }

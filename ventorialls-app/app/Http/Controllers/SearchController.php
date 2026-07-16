@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\Inventory;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class SearchController extends Controller
@@ -22,8 +22,8 @@ class SearchController extends Controller
         $karyawan = User::where('role', 'karyawan')
             ->where(function ($q) use ($query) {
                 $q->where('name', 'LIKE', "%{$query}%")
-                  ->orWhere('kontak', 'LIKE', "%{$query}%")
-                  ->orWhere('id_karyawan', 'LIKE', "%{$query}%");
+                    ->orWhere('kontak', 'LIKE', "%{$query}%")
+                    ->orWhere('id_karyawan', 'LIKE', "%{$query}%");
             })
             ->first();
 
@@ -37,19 +37,16 @@ class SearchController extends Controller
             return response()->json([
                 'found' => true,
                 'data' => [
-                    'id'           => $karyawan->id,
-                    'nama'         => $karyawan->name,
-                    'kontak'       => $karyawan->kontak,
-                    'id_karyawan'  => $karyawan->id_karyawan,
-                    'department'   => $karyawan->department,
-                    'posisi'       => $karyawan->posisi,
-                    'nama_tl'      => $karyawan->nama_tl,
-                    'no_ktp'       => $karyawan->no_ktp,
-                    'alamat_ktp'   => $karyawan->alamat_ktp,
-                    'domisili'     => $karyawan->domisili,
-                    'ruangan'      => $karyawan->ruangan,
-                    'items'        => $asetAktif,
-                ]
+                    'id' => $karyawan->id,
+                    'nama' => $karyawan->name,
+                    'kontak' => $karyawan->kontak,
+                    'id_karyawan' => $karyawan->id_karyawan,
+                    'department' => $karyawan->department,
+                    'posisi' => $karyawan->posisi,
+                    'nama_tl' => $karyawan->nama_tl,
+                    'ruangan' => $karyawan->ruangan,
+                    'items' => $asetAktif,
+                ],
             ]);
         }
 
@@ -79,16 +76,16 @@ class SearchController extends Controller
             return response()->json([
                 'found' => true,
                 'data' => [
-                    'id'          => $inventory->id,
-                    'sn'          => $inventory->sn,
-                    'merk'        => $inventory->merk,
-                    'jenis'       => $inventory->jenis,
-                    'nama_barang' => $inventory->jenis . ' ' . $inventory->merk,
-                    'pengguna'    => $penggunaLabel,
-                    'department'  => $inventory->department ?? '-',
-                    'kondisi'     => $inventory->kondisi,
-                    'status'      => $inventory->status,
-                ]
+                    'id' => $inventory->id,
+                    'sn' => $inventory->sn,
+                    'merk' => $inventory->merk,
+                    'jenis' => $inventory->jenis,
+                    'nama_barang' => $inventory->jenis.' '.$inventory->merk,
+                    'pengguna' => $penggunaLabel,
+                    'department' => $inventory->department ?? '-',
+                    'kondisi' => $inventory->kondisi,
+                    'status' => $inventory->status,
+                ],
             ]);
         }
 

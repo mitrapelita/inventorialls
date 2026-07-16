@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 class Ticket extends Model
 {
@@ -24,14 +23,14 @@ class Ticket extends Model
      */
     public static function generateCode(string $type): string
     {
-        $prefix = match($type) {
+        $prefix = match ($type) {
             'serah_terima' => 'ST',
-            'peminjaman'   => 'PM',
-            'penukaran'    => 'PN',
-            default        => 'XX',
+            'peminjaman' => 'PM',
+            'penukaran' => 'PN',
+            default => 'XX',
         };
         do {
-            $code = 'TKT-' . $prefix . '-' . rand(1000, 9999);
+            $code = 'TKT-'.$prefix.'-'.rand(1000, 9999);
         } while (self::where('ticket_code', $code)->exists());
 
         return $code;

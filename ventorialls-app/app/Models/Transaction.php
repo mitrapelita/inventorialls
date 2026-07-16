@@ -44,34 +44,34 @@ class Transaction extends Model
      */
     public static function generateDocNumber(string $type): string
     {
-        $prefix = match($type) {
-            'serah_terima'  => 'BAST/ST',
-            'peminjaman'    => 'BAST/PM',
-            'penukaran'     => 'BAST/PN',
-            'pengembalian'  => 'BAST/KB',
+        $prefix = match ($type) {
+            'serah_terima' => 'BAST/ST',
+            'peminjaman' => 'BAST/PM',
+            'penukaran' => 'BAST/PN',
+            'pengembalian' => 'BAST/KB',
             'barang_keluar' => 'BAST/BK',
-            default         => 'BAST/XX',
+            default => 'BAST/XX',
         };
-        $year  = now()->year;
-        
+        $year = now()->year;
+
         $latest = self::where('type', $type)
-                      ->whereYear('created_at', $year)
-                      ->whereNotNull('doc_number')
-                      ->orderBy('id', 'desc')
-                      ->first();
-                      
-        if (!$latest || empty($latest->doc_number)) {
+            ->whereYear('created_at', $year)
+            ->whereNotNull('doc_number')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if (! $latest || empty($latest->doc_number)) {
             $count = 1;
         } else {
             // Format: BAST/ST/001/2026
             $parts = explode('/', $latest->doc_number);
             if (isset($parts[2]) && is_numeric($parts[2])) {
-                $count = (int)$parts[2] + 1;
+                $count = (int) $parts[2] + 1;
             } else {
                 $count = 1;
             }
         }
-        
-        return $prefix . '/' . str_pad($count, 3, '0', STR_PAD_LEFT) . '/' . $year;
+
+        return $prefix.'/'.str_pad($count, 3, '0', STR_PAD_LEFT).'/'.$year;
     }
 }

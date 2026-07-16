@@ -16,9 +16,9 @@ class Inventory extends Model
     ];
 
     protected $casts = [
-        'tanggal_masuk'    => 'date',
-        'tanggal_signin'   => 'date',
-        'hak_bawa_pulang'  => 'boolean',
+        'tanggal_masuk' => 'date',
+        'tanggal_signin' => 'date',
+        'hak_bawa_pulang' => 'boolean',
     ];
 
     // Relasi ke log mutasi stok

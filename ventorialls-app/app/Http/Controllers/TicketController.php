@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
+use App\Models\Setting;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +16,7 @@ class TicketController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'type'        => ['required', 'in:serah_terima,peminjaman,penukaran'],
+            'type' => ['required', 'in:serah_terima,peminjaman,penukaran'],
             'borrow_type' => ['nullable', 'in:dalam,luar'],
         ]);
 
@@ -22,13 +24,14 @@ class TicketController extends Controller
 
         $ticket = Ticket::create([
             'ticket_code' => Ticket::generateCode($type),
-            'type'        => $type,
+            'type' => $type,
             'borrow_type' => $request->borrow_type,
-            'status'      => 'menunggu_diisi',
-            'created_by'  => Auth::id(),
+            'status' => 'menunggu_diisi',
+            'created_by' => Auth::id(),
         ]);
 
         $redirectType = str_replace('_', '-', $type);
+
         return redirect()->route('admin-tiket', ['type' => $redirectType])
             ->with('success', "Tiket {$ticket->ticket_code} berhasil dibuat!");
     }
@@ -39,13 +42,14 @@ class TicketController extends Controller
     public function destroy(Ticket $ticket)
     {
         $ticket->update(['status' => 'dibatalkan']);
+
         return redirect()->route('admin-tiket')
             ->with('success', "Tiket {$ticket->ticket_code} telah dibatalkan.");
     }
 
     public function bulkDestroy(Request $request)
     {
-        if ($request->pin !== \App\Models\Setting::get('validation_pin', env('VALIDATION_PIN', '447747'))) {
+        if ($request->pin !== Setting::get('validation_pin', env('VALIDATION_PIN', '447747'))) {
             return response()->json(['success' => false, 'message' => 'PIN salah!'], 403);
         }
 
@@ -53,8 +57,8 @@ class TicketController extends Controller
         if (count($ids) > 0) {
             Ticket::whereIn('id', $ids)->update(['status' => 'dibatalkan']);
             // also log
-            foreach($ids as $id) {
-                \App\Models\ActivityLog::record('deleted', 'Ticket', $id, "Admin membatalkan massal tiket ID: {$id}");
+            foreach ($ids as $id) {
+                ActivityLog::record('deleted', 'Ticket', $id, "Admin membatalkan massal tiket ID: {$id}");
             }
         }
 

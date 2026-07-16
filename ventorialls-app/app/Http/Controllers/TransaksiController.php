@@ -4,12 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Inventory;
+use App\Models\Setting;
 use App\Models\Ticket;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 class TransaksiController extends Controller
 {
@@ -25,8 +25,8 @@ class TransaksiController extends Controller
     public function storeSerahTerima(Request $request)
     {
         $request->validate([
-            'karyawan.nama'       => ['required', 'string', 'max:255'],
-            'karyawan.no_wa'      => ['required', 'string', 'max:20'],
+            'karyawan.nama' => ['required', 'string', 'max:255'],
+            'karyawan.no_wa' => ['required', 'string', 'max:20'],
             'karyawan.department' => ['required', 'string', 'max:100'],
         ]);
 
@@ -34,32 +34,32 @@ class TransaksiController extends Controller
 
         // Data ekstra karyawan disimpan sementara di catatan_admin sebagai JSON
         $extraData = [
-            'nama_tl'      => $kData['team_leader'] ?? ($kData['nama_tl'] ?? null),
-            'no_ktp'       => $kData['nik_ktp'] ?? ($kData['no_ktp'] ?? null),
-            'alamat_ktp'   => $kData['alamat_ktp'] ?? null,
-            'domisili'     => $kData['domisili'] ?? null,
-            'ruangan'      => $kData['ruangan'] ?? null,
+            'nama_tl' => $kData['team_leader'] ?? ($kData['nama_tl'] ?? null),
+            'no_ktp' => $kData['nik_ktp'] ?? ($kData['no_ktp'] ?? null),
+            'alamat_ktp' => $kData['alamat_ktp'] ?? null,
+            'domisili' => $kData['domisili'] ?? null,
+            'ruangan' => $kData['ruangan'] ?? null,
         ];
 
         $ticket = Ticket::create([
             'ticket_code' => Ticket::generateCode('serah_terima'),
-            'type'        => 'serah_terima',
-            'status'      => 'menunggu_validasi',
-            'created_by'  => auth()->id(),
-            'filled_at'   => now(),
+            'type' => 'serah_terima',
+            'status' => 'menunggu_validasi',
+            'created_by' => auth()->id(),
+            'filled_at' => now(),
         ]);
 
         $transaction = Transaction::create([
-            'ticket_id'    => $ticket->id,
-            'doc_number'   => null,
-            'type'         => 'serah_terima',
+            'ticket_id' => $ticket->id,
+            'doc_number' => null,
+            'type' => 'serah_terima',
             'nama_pengaju' => $kData['nama'],
-            'department'   => $kData['department'],
-            'no_wa'        => $kData['no_wa'],
-            'status'       => 'menunggu_validasi',
+            'department' => $kData['department'],
+            'no_wa' => $kData['no_wa'],
+            'status' => 'menunggu_validasi',
             'validated_by' => null,
             'validated_at' => null,
-            'catatan_admin'=> json_encode($extraData),
+            'catatan_admin' => json_encode($extraData),
         ]);
 
         // Simpan setiap item berdasarkan kategori
@@ -83,34 +83,34 @@ class TransaksiController extends Controller
     public function storePeminjaman(Request $request)
     {
         $request->validate([
-            'karyawan_id'   => ['required', 'exists:users,id'],
-            'borrow_type'   => ['required', 'in:dalam,luar'],
+            'karyawan_id' => ['required', 'exists:users,id'],
+            'borrow_type' => ['required', 'in:dalam,luar'],
         ]);
 
         $user = User::findOrFail($request->karyawan_id);
 
         $ticket = Ticket::create([
             'ticket_code' => Ticket::generateCode('peminjaman'),
-            'type'        => 'peminjaman',
+            'type' => 'peminjaman',
             'borrow_type' => $request->borrow_type,
-            'status'      => 'menunggu_validasi',
-            'created_by'  => auth()->id(),
-            'filled_at'   => now(),
+            'status' => 'menunggu_validasi',
+            'created_by' => auth()->id(),
+            'filled_at' => now(),
         ]);
 
         $transaction = Transaction::create([
-            'ticket_id'    => $ticket->id,
-            'doc_number'   => null,
-            'type'         => 'peminjaman',
-            'borrow_type'  => $request->borrow_type,
+            'ticket_id' => $ticket->id,
+            'doc_number' => null,
+            'type' => 'peminjaman',
+            'borrow_type' => $request->borrow_type,
             'nama_pengaju' => $user->name,
-            'department'   => $user->department,
-            'no_wa'        => $user->kontak,
-            'status'       => 'menunggu_validasi',
+            'department' => $user->department,
+            'no_wa' => $user->kontak,
+            'status' => 'menunggu_validasi',
             'validated_by' => null,
             'validated_at' => null,
-            'spv_name'     => $request->borrow_type === 'luar' ? $request->spv_name : null,
-            'hrd_name'     => $request->borrow_type === 'luar' ? $request->hrd_name : null,
+            'spv_name' => $request->borrow_type === 'luar' ? $request->spv_name : null,
+            'hrd_name' => $request->borrow_type === 'luar' ? $request->hrd_name : null,
         ]);
 
         if ($request->borrow_type === 'luar') {
@@ -119,16 +119,16 @@ class TransaksiController extends Controller
                 'hrd_name' => ['required', 'string'],
                 'luar_items' => ['required', 'array', 'min:1'],
             ]);
-            
+
             foreach ($request->luar_items as $sn) {
-                $inv = \App\Models\Inventory::where('sn', $sn)->first();
+                $inv = Inventory::where('sn', $sn)->first();
                 if ($inv) {
-                    \App\Models\TransactionItem::create([
+                    TransactionItem::create([
                         'transaction_id' => $transaction->id,
-                        'kategori'       => $inv->jenis,
-                        'no_aset'        => $sn,
-                        'keterangan'     => $inv->keterangan,
-                        'foto_path'      => '',
+                        'kategori' => $inv->jenis,
+                        'no_aset' => $sn,
+                        'keterangan' => $inv->keterangan,
+                        'foto_path' => '',
                     ]);
                 }
             }
@@ -159,20 +159,20 @@ class TransaksiController extends Controller
 
         $ticket = Ticket::create([
             'ticket_code' => Ticket::generateCode('penukaran'),
-            'type'        => 'penukaran',
-            'status'      => 'menunggu_validasi',
-            'created_by'  => auth()->id(),
-            'filled_at'   => now(),
+            'type' => 'penukaran',
+            'status' => 'menunggu_validasi',
+            'created_by' => auth()->id(),
+            'filled_at' => now(),
         ]);
 
         $transaction = Transaction::create([
-            'ticket_id'    => $ticket->id,
-            'doc_number'   => null,
-            'type'         => 'penukaran',
+            'ticket_id' => $ticket->id,
+            'doc_number' => null,
+            'type' => 'penukaran',
             'nama_pengaju' => $user->name,
-            'department'   => $user->department,
-            'no_wa'        => $user->kontak,
-            'status'       => 'menunggu_validasi',
+            'department' => $user->department,
+            'no_wa' => $user->kontak,
+            'status' => 'menunggu_validasi',
             'validated_by' => null,
             'validated_at' => null,
         ]);
@@ -197,8 +197,8 @@ class TransaksiController extends Controller
         $request->validate([
             // Since we submit from the new Retur Modal, we need to pass peminjam
             'transaction_id' => ['required'], // this is now the user ID / uniqid, but we'll use a hidden field for peminjam
-            'peminjam'       => ['required', 'string'],
-            'catatan'        => ['nullable', 'string'],
+            'peminjam' => ['required', 'string'],
+            'catatan' => ['nullable', 'string'],
         ]);
 
         $returnedItems = $request->input('items', []);
@@ -211,24 +211,24 @@ class TransaksiController extends Controller
         // Buat Ticket
         $ticket = Ticket::create([
             'ticket_code' => Ticket::generateCode('pengembalian'),
-            'type'        => 'pengembalian',
-            'status'      => 'disetujui',
-            'created_by'  => auth()->id(),
-            'filled_at'   => now(),
+            'type' => 'pengembalian',
+            'status' => 'disetujui',
+            'created_by' => auth()->id(),
+            'filled_at' => now(),
         ]);
 
         // Buat Transaction
         $transaction = Transaction::create([
-            'ticket_id'    => $ticket->id,
-            'doc_number'   => Transaction::generateDocNumber('pengembalian'),
-            'type'         => 'pengembalian',
+            'ticket_id' => $ticket->id,
+            'doc_number' => Transaction::generateDocNumber('pengembalian'),
+            'type' => 'pengembalian',
             'nama_pengaju' => $request->peminjam,
-            'department'   => $user ? $user->department : '-',
-            'no_wa'        => $user ? $user->kontak : '-',
-            'status'       => 'dikembalikan', // Langsung selesai
+            'department' => $user ? $user->department : '-',
+            'no_wa' => $user ? $user->kontak : '-',
+            'status' => 'dikembalikan', // Langsung selesai
             'validated_by' => auth()->id(),
             'validated_at' => now(),
-            'catatan_admin'=> $request->catatan,
+            'catatan_admin' => $request->catatan,
         ]);
 
         // Update Inventory & Simpan Item
@@ -237,10 +237,10 @@ class TransaksiController extends Controller
             if ($inv) {
                 TransactionItem::create([
                     'transaction_id' => $transaction->id,
-                    'kategori'       => $inv->jenis,
-                    'no_aset'        => $sn,
-                    'keterangan'     => $inv->keterangan,
-                    'foto_path'      => '',
+                    'kategori' => $inv->jenis,
+                    'no_aset' => $sn,
+                    'keterangan' => $inv->keterangan,
+                    'foto_path' => '',
                 ]);
 
                 $tujuan = $data['tujuan'] ?? 'it';
@@ -249,21 +249,21 @@ class TransaksiController extends Controller
                     // Pindah dari pinjam luar ke pinjam dalam — tetap aktif, reset hak bawa pulang
                     $inv->update([
                         'hak_bawa_pulang' => false,
-                        'kondisi'         => $data['kondisi'] ?? 'Baik',
+                        'kondisi' => $data['kondisi'] ?? 'Baik',
                     ]);
                 } else {
                     // Kembali sepenuhnya ke IT
                     $inv->update([
-                        'pengguna'        => null,
-                        'kontak'          => null,
-                        'department'      => null,
-                        'team_leader'     => null,
-                        'spv_name'        => null,
-                        'hrd_name'        => null,
-                        'lokasi'          => 'Ruangan IT',
-                        'status'          => 'Disimpan',
+                        'pengguna' => null,
+                        'kontak' => null,
+                        'department' => null,
+                        'team_leader' => null,
+                        'spv_name' => null,
+                        'hrd_name' => null,
+                        'lokasi' => 'Ruangan IT',
+                        'status' => 'Disimpan',
                         'hak_bawa_pulang' => false,
-                        'kondisi'         => $data['kondisi'] ?? 'Baik',
+                        'kondisi' => $data['kondisi'] ?? 'Baik',
                     ]);
                 }
             }
@@ -293,7 +293,7 @@ class TransaksiController extends Controller
 
         foreach (self::KATEGORI_LIST as $kategori) {
             $itemData = $items[$kategori] ?? [];
-            $noAset   = trim($itemData['no_aset'] ?? '');
+            $noAset = trim($itemData['no_aset'] ?? '');
 
             // Lewati jika kosong
             if (empty($noAset)) {
@@ -307,11 +307,11 @@ class TransaksiController extends Controller
 
             TransactionItem::create([
                 'transaction_id' => $transactionId,
-                'kategori'       => $kategori,
-                'no_aset'        => strtoupper($noAset),
-                'keterangan'     => $itemData['keterangan'] ?? null,
-                'sn_lama'        => null,
-                'foto_path'      => $fotoPath ?? '',
+                'kategori' => $kategori,
+                'no_aset' => strtoupper($noAset),
+                'keterangan' => $itemData['keterangan'] ?? null,
+                'sn_lama' => null,
+                'foto_path' => $fotoPath ?? '',
             ]);
         }
     }
@@ -326,8 +326,8 @@ class TransaksiController extends Controller
 
         foreach ($items as $key => $itemData) {
             $kategori = $itemData['kategori'] ?? (in_array($key, self::KATEGORI_LIST) ? $key : 'Unknown');
-            $noAset   = trim($itemData['no_aset'] ?? '');
-            $snLama   = trim($itemData['sn_lama'] ?? '');
+            $noAset = trim($itemData['no_aset'] ?? '');
+            $snLama = trim($itemData['sn_lama'] ?? '');
 
             // Lewati jika tidak ada aset lama maupun baru
             if (empty($noAset) && empty($snLama)) {
@@ -341,13 +341,13 @@ class TransaksiController extends Controller
 
             TransactionItem::create([
                 'transaction_id' => $transactionId,
-                'kategori'       => $kategori,
-                'no_aset'        => strtoupper($noAset),
-                'sn_lama'        => strtoupper($snLama),
+                'kategori' => $kategori,
+                'no_aset' => strtoupper($noAset),
+                'sn_lama' => strtoupper($snLama),
                 'alasan_penukaran' => $itemData['alasan_penukaran'] ?? null,
                 'penjelasan_kerusakan' => $itemData['penjelasan_kerusakan'] ?? null,
-                'keterangan'     => $itemData['keterangan'] ?? null,
-                'foto_path'      => $fotoPath ?? '',
+                'keterangan' => $itemData['keterangan'] ?? null,
+                'foto_path' => $fotoPath ?? '',
             ]);
         }
     }
@@ -359,15 +359,17 @@ class TransaksiController extends Controller
     private function updateInventoryOwnership(Transaction $transaction, User $user): void
     {
         foreach ($transaction->items as $item) {
-            if (empty($item->no_aset)) continue;
+            if (empty($item->no_aset)) {
+                continue;
+            }
 
             Inventory::where('sn', $item->no_aset)->update([
-                'pengguna'       => $user->name,
-                'kontak'         => $user->kontak,
-                'department'     => $user->department,
-                'team_leader'    => $user->nama_tl,
+                'pengguna' => $user->name,
+                'kontak' => $user->kontak,
+                'department' => $user->department,
+                'team_leader' => $user->nama_tl,
                 'tanggal_signin' => now()->toDateString(),
-                'status'         => 'Aktif',
+                'status' => 'Aktif',
             ]);
         }
     }
@@ -379,24 +381,24 @@ class TransaksiController extends Controller
     {
         foreach ($transaction->items as $item) {
             // Aset lama → kembalikan ke gudang
-            if (!empty($item->sn_lama)) {
+            if (! empty($item->sn_lama)) {
                 Inventory::where('sn', $item->sn_lama)->update([
-                    'pengguna'   => null,
-                    'kontak'     => null,
+                    'pengguna' => null,
+                    'kontak' => null,
                     'department' => null,
-                    'status'     => 'Disimpan',
-                    'kondisi'    => 'Rusak',
+                    'status' => 'Disimpan',
+                    'kondisi' => 'Rusak',
                 ]);
             }
             // Aset baru → assign ke karyawan
-            if (!empty($item->no_aset)) {
+            if (! empty($item->no_aset)) {
                 Inventory::where('sn', $item->no_aset)->update([
-                    'pengguna'       => $user->name,
-                    'kontak'         => $user->kontak,
-                    'department'     => $user->department,
-                    'team_leader'    => $user->nama_tl,
+                    'pengguna' => $user->name,
+                    'kontak' => $user->kontak,
+                    'department' => $user->department,
+                    'team_leader' => $user->nama_tl,
                     'tanggal_signin' => now()->toDateString(),
-                    'status'         => 'Aktif',
+                    'status' => 'Aktif',
                 ]);
             }
         }
@@ -404,7 +406,7 @@ class TransaksiController extends Controller
 
     public function bulkDestroy(Request $request)
     {
-        if ($request->pin !== \App\Models\Setting::get('validation_pin', env('VALIDATION_PIN', '447747'))) {
+        if ($request->pin !== Setting::get('validation_pin', env('VALIDATION_PIN', '447747'))) {
             return response()->json(['success' => false, 'message' => 'PIN salah!'], 403);
         }
 
@@ -427,27 +429,28 @@ class TransaksiController extends Controller
     public function print(Transaction $transaction)
     {
         $transaction->load('items');
-        
+
         if ($transaction->type === 'serah_terima') {
-            $user = \App\Models\User::where('name', $transaction->nama_pengaju)->first();
+            $user = User::where('name', $transaction->nama_pengaju)->first();
+
             return view('admin.print.serah-terima', compact('transaction', 'user'));
         }
-        
+
         return view('admin.print.transaksi', compact('transaction'));
     }
 
-    public function printMptb(\App\Models\User $user)
+    public function printMptb(User $user)
     {
-        $items = \App\Models\Inventory::where('pengguna', $user->name)
+        $items = Inventory::where('pengguna', $user->name)
             ->where('hak_bawa_pulang', true)
             ->get();
-            
-        $latestTx = \App\Models\Transaction::where('nama_pengaju', $user->name)
+
+        $latestTx = Transaction::where('nama_pengaju', $user->name)
             ->where('type', 'peminjaman')
             ->where('borrow_type', 'luar')
             ->latest()
             ->first();
-            
+
         return view('admin.print.hak-bawa-pulang', compact('user', 'items', 'latestTx'));
     }
 }
