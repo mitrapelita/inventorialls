@@ -2,7 +2,7 @@
   "name": "Ventorialls IT Inventory",
   "short_name": "Ventorialls",
   "description": "IT Inventory Management System",
-  "start_url": "/workspaceinventory",
+  "start_url": "/user",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1d4ed8",
