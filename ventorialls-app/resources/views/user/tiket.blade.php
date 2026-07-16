@@ -40,8 +40,8 @@
     <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 h-12 sm:h-16 flex items-center justify-between">
             <div class="flex items-center gap-2 sm:gap-3">
-                <div class="w-7 h-7 sm:w-10 sm:h-10 bg-gradient-to-br from-[#1d4ed8] to-[#3b82f6] rounded-lg sm:rounded-xl flex items-center justify-center text-white shadow-sm border border-[#1d4ed8]">
-                    <i data-lucide="box" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                <div class="flex items-center justify-center">
+                    <img src="{{ asset('image/logo-biru.png') }}" alt="Ventorialls Logo" class="h-7 w-7 sm:h-10 sm:w-10 object-contain drop-shadow-sm">
                 </div>
                 <div>
                     <h1 class="text-sm sm:text-base font-bold text-slate-800 leading-tight">Ventorialls</h1>
