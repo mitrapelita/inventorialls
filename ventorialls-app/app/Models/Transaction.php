@@ -13,7 +13,7 @@ class Transaction extends Model
         'ticket_id', 'doc_number', 'type', 'borrow_type',
         'nama_pengaju', 'department', 'no_wa',
         'status', 'validated_by', 'validated_at', 'catatan_admin',
-        'spv_name', 'hrd_name', 'keterangan', 'alamat_tujuan',
+        'spv_name', 'hrd_name', 'keterangan', 'alamat_tujuan', 'bast_status', 'created_at',
     ];
 
     protected $casts = [
@@ -55,8 +55,9 @@ class Transaction extends Model
         $year = now()->year;
 
         $latest = self::where('type', $type)
-            ->whereYear('created_at', $year)
+            ->where('doc_number', 'like', '%/'.$year)
             ->whereNotNull('doc_number')
+            ->orderBy('validated_at', 'desc')
             ->orderBy('id', 'desc')
             ->first();
 

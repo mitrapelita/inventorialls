@@ -104,8 +104,8 @@ class TransaksiController extends Controller
             'type' => 'peminjaman',
             'borrow_type' => $request->borrow_type,
             'nama_pengaju' => $user->name,
-            'department' => $user->department,
-            'no_wa' => $user->kontak,
+            'department' => $user->department ?? '-',
+            'no_wa' => $user->kontak ?? '-',
             'status' => 'menunggu_validasi',
             'validated_by' => null,
             'validated_at' => null,
@@ -170,8 +170,8 @@ class TransaksiController extends Controller
             'doc_number' => null,
             'type' => 'penukaran',
             'nama_pengaju' => $user->name,
-            'department' => $user->department,
-            'no_wa' => $user->kontak,
+            'department' => $user->department ?? '-',
+            'no_wa' => $user->kontak ?? '-',
             'status' => 'menunggu_validasi',
             'validated_by' => null,
             'validated_at' => null,
@@ -223,8 +223,8 @@ class TransaksiController extends Controller
             'doc_number' => Transaction::generateDocNumber('pengembalian'),
             'type' => 'pengembalian',
             'nama_pengaju' => $request->peminjam,
-            'department' => $user ? $user->department : '-',
-            'no_wa' => $user ? $user->kontak : '-',
+            'department' => $user?->department ?? '-',
+            'no_wa' => $user?->kontak ?? '-',
             'status' => 'dikembalikan', // Langsung selesai
             'validated_by' => auth()->id(),
             'validated_at' => now(),
@@ -421,6 +421,7 @@ class TransaksiController extends Controller
                 );
                 $tx->delete();
             }
+            session()->flash('success', count($ids) . ' data transaksi berhasil dihapus.');
         }
 
         return response()->json(['success' => true]);
@@ -452,5 +453,18 @@ class TransaksiController extends Controller
             ->first();
 
         return view('admin.print.hak-bawa-pulang', compact('user', 'items', 'latestTx'));
+    }
+
+    public function updateBastStatus(Request $request, Transaction $transaction)
+    {
+        $request->validate([
+            'bast_status' => ['required', 'string', 'in:Belum Di Print,Sudah Di Print,Sudah Di Tandatangani'],
+        ]);
+
+        $transaction->update([
+            'bast_status' => $request->bast_status
+        ]);
+
+        return response()->json(['message' => 'Status BAST berhasil diperbarui']);
     }
 }
