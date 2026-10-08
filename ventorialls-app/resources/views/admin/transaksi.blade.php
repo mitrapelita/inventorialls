@@ -79,11 +79,13 @@
                         <th class="px-5 py-3 font-semibold">Penerima</th>
                         <th class="px-5 py-3 font-semibold">Department</th>
                         <th class="px-5 py-3 font-semibold text-center">Total Item</th>
+                        <th class="px-5 py-3 font-semibold text-center">Status BAST</th>
+                        <th class="px-5 py-3 font-semibold text-center w-10">NFC</th>
                         <th class="px-5 py-3 font-semibold text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    <template x-for="item in filteredSerahTerimaList" :key="item.doc">
+                    <template x-for="item in paginatedSerahTerimaList" :key="item.doc">
                         <tr class="hover:bg-slate-50/50 transition-colors text-sm">
                             <td class="px-5 py-3 text-center">
                                 <input type="checkbox" class="rounded border-slate-300 text-rose-500 focus:ring-rose-500 cursor-pointer" :value="item.id" x-model="selectedIds">
@@ -120,6 +122,30 @@
                                     </div>
                                 </template>
                             </td>
+                            <td class="px-5 py-3 text-center">
+                                <select 
+                                    x-model="item.bast_status" 
+                                    @change="updateBastStatus(item.id, $event.target.value)"
+                                    class="appearance-none text-center px-2.5 py-1 text-[10px] font-bold rounded-md border tracking-wide uppercase shadow-sm cursor-pointer outline-none transition-colors"
+                                    :class="{
+                                        'bg-slate-50 text-slate-500 border-slate-200': item.bast_status === 'Belum Di Print',
+                                        'bg-amber-50 text-amber-600 border-amber-200': item.bast_status === 'Sudah Di Print',
+                                        'bg-emerald-50 text-emerald-600 border-emerald-200': item.bast_status === 'Sudah Di Tandatangani'
+                                    }"
+                                >
+                                    <option value="Belum Di Print" class="text-slate-700 font-medium normal-case text-xs">Belum Di Print</option>
+                                    <option value="Sudah Di Print" class="text-slate-700 font-medium normal-case text-xs">Sudah Di Print</option>
+                                    <option value="Sudah Di Tandatangani" class="text-slate-700 font-medium normal-case text-xs">Sudah Di TTD</option>
+                                </select>
+                            </td>
+                            <td class="px-5 py-3 text-center">
+                                <button type="button" 
+                                    @click="copyNfcLink(item.penerima)"
+                                    class="text-slate-400 hover:text-indigo-600 transition-colors p-1.5 rounded-md hover:bg-indigo-50 border border-transparent hover:border-indigo-100 inline-flex items-center justify-center"
+                                    title="Salin Link NFC">
+                                    <iconify-icon icon="mdi:nfc-tap" class="w-4 h-4"></iconify-icon>
+                                </button>
+                            </td>
                             <td class="px-5 py-3 text-center flex items-center justify-center space-x-2">
                                 <button @click="selectedTx = item; showDetailModal = true" class="text-slate-400 hover:text-[#1d4ed8] transition-colors p-1" title="Detail">
                                     <i data-lucide="eye" class="w-4 h-4"></i>
@@ -135,21 +161,54 @@
                     </template>
                 </tbody>
             </table>
+            <!-- Pagination Controls Serah Terima -->
+            <div class="px-5 py-3 border-t border-slate-100 flex items-center justify-end bg-slate-50/50">
+                <div class="flex items-center space-x-3">
+                    <span class="text-xs text-slate-500">
+                        Hal <span class="font-bold text-slate-700" x-text="currentPageST"></span> / <span class="font-bold text-slate-700" x-text="Math.ceil(filteredSerahTerimaList.length / perPageST) || 1"></span>
+                    </span>
+                    <div class="flex items-center space-x-1">
+                        <button @click="if(currentPageST > 1) currentPageST--" class="p-1 rounded-md bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-[#1d4ed8] disabled:opacity-50 disabled:cursor-not-allowed" :disabled="currentPageST === 1">
+                            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                        </button>
+                        <button @click="if(currentPageST < Math.ceil(filteredSerahTerimaList.length / perPageST)) currentPageST++" class="p-1 rounded-md bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-[#1d4ed8] disabled:opacity-50 disabled:cursor-not-allowed" :disabled="currentPageST >= Math.ceil(filteredSerahTerimaList.length / perPageST) || filteredSerahTerimaList.length === 0">
+                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 2. Peminjaman Table -->
         <div x-show="activeTab === 'peminjaman'" class="flex-1 flex flex-col overflow-hidden" style="display: none;">
             <!-- Sub-Menu Peminjaman -->
-            <div class="px-5 py-3 border-b border-slate-100 flex items-center space-x-2 bg-slate-50/50">
-                <button @click="subTabPeminjaman = 'aktif_dalam'" class="px-4 py-1.5 rounded-lg font-semibold text-xs transition-colors" :class="subTabPeminjaman === 'aktif_dalam' ? 'bg-[#1d4ed8] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-700'">
-                    Pinjam Dalam
-                </button>
-                <button @click="subTabPeminjaman = 'aktif_luar'" class="px-4 py-1.5 rounded-lg font-semibold text-xs transition-colors" :class="subTabPeminjaman === 'aktif_luar' ? 'bg-[#1d4ed8] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-700'">
-                    Pinjam Luar
-                </button>
-                <button @click="subTabPeminjaman = 'riwayat'" class="px-4 py-1.5 rounded-lg font-semibold text-xs transition-colors" :class="subTabPeminjaman === 'riwayat' ? 'bg-[#1d4ed8] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-700'">
-                    Riwayat
-                </button>
+            <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div class="flex items-center space-x-2">
+                    <button @click="subTabPeminjaman = 'aktif_dalam'" class="px-4 py-1.5 rounded-lg font-semibold text-xs transition-colors" :class="subTabPeminjaman === 'aktif_dalam' ? 'bg-[#1d4ed8] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-700'">
+                        Pinjam Dalam
+                    </button>
+                    <button @click="subTabPeminjaman = 'aktif_luar'" class="px-4 py-1.5 rounded-lg font-semibold text-xs transition-colors" :class="subTabPeminjaman === 'aktif_luar' ? 'bg-[#1d4ed8] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-700'">
+                        Pinjam Luar
+                    </button>
+                    <button @click="subTabPeminjaman = 'riwayat'" class="px-4 py-1.5 rounded-lg font-semibold text-xs transition-colors" :class="subTabPeminjaman === 'riwayat' ? 'bg-[#1d4ed8] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-700'">
+                        Riwayat
+                    </button>
+                </div>
+                
+                <!-- Pagination Controls -->
+                <div x-show="subTabPeminjaman === 'aktif_dalam' || subTabPeminjaman === 'aktif_luar'" class="flex items-center space-x-3" x-cloak>
+                    <span class="text-xs text-slate-500">
+                        Hal <span class="font-bold text-slate-700" x-text="currentPagePinjam"></span> / <span class="font-bold text-slate-700" x-text="Math.ceil(filteredPinjamListByTab.length / perPagePinjam) || 1"></span>
+                    </span>
+                    <div class="flex items-center space-x-1">
+                        <button @click="if(currentPagePinjam > 1) currentPagePinjam--" class="p-1 rounded-md bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-[#1d4ed8] disabled:opacity-50 disabled:cursor-not-allowed" :disabled="currentPagePinjam === 1">
+                            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                        </button>
+                        <button @click="if(currentPagePinjam < Math.ceil(filteredPinjamListByTab.length / perPagePinjam)) currentPagePinjam++" class="p-1 rounded-md bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-[#1d4ed8] disabled:opacity-50 disabled:cursor-not-allowed" :disabled="currentPagePinjam >= Math.ceil(filteredPinjamListByTab.length / perPagePinjam) || filteredPinjamListByTab.length === 0">
+                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Sub-Tab: Aktif -->
@@ -168,7 +227,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
-                        <template x-for="item in filteredPinjamList.filter(i => subTabPeminjaman === 'aktif_dalam' ? i.pinjam_dalam > 0 : i.pinjam_luar > 0)" :key="item.id">
+                        <template x-for="item in paginatedPinjamList" :key="item.id">
                             <tr class="hover:bg-slate-50/50 transition-colors text-sm">
                                 <td class="px-5 py-3 text-center">
                                     <input type="checkbox" class="rounded border-slate-300 text-rose-500 focus:ring-rose-500 cursor-pointer" :value="item.id" x-model="selectedIds">
@@ -246,6 +305,9 @@
                 <table class="w-full text-left border-collapse whitespace-nowrap">
                     <thead>
                         <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-100">
+                            <th class="px-5 py-3 w-10 text-center">
+                                <input type="checkbox" class="rounded border-slate-300 text-rose-500 focus:ring-rose-500 cursor-pointer" @change="toggleAll" :checked="allSelected">
+                            </th>
                             <th class="px-5 py-3 font-semibold">No. Dokumen</th>
                             <th class="px-5 py-3 font-semibold">Tanggal</th>
                             <th class="px-5 py-3 font-semibold">Peminjam</th>
@@ -255,13 +317,16 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
-                        <template x-for="item in filteredHistoryPeminjamanList" :key="item.id">
+                        <template x-for="item in paginatedHistoryPeminjamanList" :key="item.id">
                             <tr class="hover:bg-slate-50/50 transition-colors text-sm">
+                                <td class="px-5 py-3 text-center">
+                                    <input type="checkbox" class="rounded border-slate-300 text-rose-500 focus:ring-rose-500 cursor-pointer" :value="item.id" x-model="selectedIds">
+                                </td>
                                 <td class="px-5 py-3 font-mono text-[#1d4ed8]" x-text="item.doc"></td>
                                 <td class="px-5 py-3" x-text="item.tgl"></td>
                                 <td class="px-5 py-3 font-bold text-slate-700" x-text="item.peminjam"></td>
                                 <td class="px-5 py-3">
-                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600" x-text="item.type.replace('_', ' ')"></span>
+                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600" x-text="item.type === 'peminjaman' ? (item.borrow_type === 'luar' ? 'Peminjaman Luar' : 'Peminjaman Dalam') : (item.type === 'pengembalian' ? 'Pengembalian' : item.type.replace('_', ' '))"></span>
                                 </td>
                                 <td class="px-5 py-3 text-center" 
                                     x-data="{ showTooltip: false, mouseX: 0, mouseY: 0 }" 
@@ -326,7 +391,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    <template x-for="item in filteredPenukaranList" :key="item.doc">
+                    <template x-for="item in paginatedPenukaranList" :key="item.doc">
                         <tr class="hover:bg-slate-50/50 transition-colors text-sm">
                             <td class="px-5 py-3 text-center">
                                 <input type="checkbox" class="rounded border-slate-300 text-rose-500 focus:ring-rose-500 cursor-pointer" :value="item.id" x-model="selectedIds">
@@ -351,6 +416,22 @@
                     </template>
                 </tbody>
             </table>
+            <!-- Pagination Controls Penukaran -->
+            <div class="px-5 py-3 border-t border-slate-100 flex items-center justify-end bg-slate-50/50">
+                <div class="flex items-center space-x-3">
+                    <span class="text-xs text-slate-500">
+                        Hal <span class="font-bold text-slate-700" x-text="currentPagePenukaran"></span> / <span class="font-bold text-slate-700" x-text="Math.ceil(filteredPenukaranList.length / perPagePenukaran) || 1"></span>
+                    </span>
+                    <div class="flex items-center space-x-1">
+                        <button @click="if(currentPagePenukaran > 1) currentPagePenukaran--" class="p-1 rounded-md bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-[#1d4ed8] disabled:opacity-50 disabled:cursor-not-allowed" :disabled="currentPagePenukaran === 1">
+                            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                        </button>
+                        <button @click="if(currentPagePenukaran < Math.ceil(filteredPenukaranList.length / perPagePenukaran)) currentPagePenukaran++" class="p-1 rounded-md bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-[#1d4ed8] disabled:opacity-50 disabled:cursor-not-allowed" :disabled="currentPagePenukaran >= Math.ceil(filteredPenukaranList.length / perPagePenukaran) || filteredPenukaranList.length === 0">
+                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
 
@@ -381,7 +462,7 @@
                 @endif
 
                 <!-- FORM: Serah Terima -->
-                <form x-show="activeTab === 'serah-terima'" action="{{ route('transaksi.serah-terima') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                <form x-show="activeTab === 'serah-terima'" action="{{ route('transaksi.serah-terima') }}" method="POST" enctype="multipart/form-data" @submit.prevent="submitForm" class="space-y-6">
                     @csrf
                     <div class="mb-6">
                         <h4 class="text-sm font-bold text-slate-800 mb-4 flex items-center pb-2 border-b border-slate-100">
@@ -391,21 +472,13 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap</label>
-                                <input type="text" name="karyawan[nama]" placeholder="Nama lengkap..." required class="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1d4ed8]/20 outline-none text-sm">
+                                <input type="text" name="karyawan[nama]" placeholder="Nama lengkap..." required class="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1d4ed8]/20 outline-none text-sm uppercase">
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">No WA Aktif</label>
                                 <input type="text" name="karyawan[no_wa]" placeholder="08..." required class="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1d4ed8]/20 outline-none text-sm">
                             </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Team Leader</label>
-                                <select name="karyawan[team_leader]" required class="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1d4ed8]/20 outline-none text-sm cursor-pointer">
-                                    <option value="" disabled selected>Pilih Team Leader...</option>
-                                    @foreach($tls as $tl)
-                                        <option value="{{ $tl->name }}">{{ $tl->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
+
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">No KTP</label>
                                 <input type="text" name="karyawan[nik_ktp]" placeholder="NIK KTP..." required class="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1d4ed8]/20 outline-none text-sm">
@@ -422,32 +495,24 @@
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">Divisi / Department</label>
                                 <select name="karyawan[department]" class="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1d4ed8]/20 outline-none text-sm" required>
                                     <option value="">Pilih Divisi...</option>
-                                    <option value="IT">IT</option>
-                                    <option value="HR">HR</option>
-                                    <option value="Legal">Legal</option>
-                                    <option value="Translator">Translator</option>
-                                    <option value="Agent">Agent</option>
-                                    <option value="TL">TL</option>
-                                    <option value="QC">QC</option>
-                                    <option value="SPV">SPV</option>
-                                    <option value="Vendor">Vendor</option>
+                                    @foreach($masterDepartments as $dept)
+                                        <option value="{{ $dept }}">{{ $dept }}</option>
+                                    @endforeach
+                                    <!-- Fallback -->
+                                    @if(!$masterDepartments->contains('IT')) <option value="IT">IT</option> @endif
+                                    @if(!$masterDepartments->contains('HR')) <option value="HR">HR</option> @endif
                                 </select>
                             </div>
                             <div class="md:col-span-1">
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">Ruangan Saat Ini</label>
                                 <select name="karyawan[ruangan]" class="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1d4ed8]/20 outline-none text-sm" required>
                                     <option value="">Pilih Ruangan...</option>
-                                    <option value="Ruangan 1">Ruangan 1</option>
-                                    <option value="Ruangan 2">Ruangan 2</option>
-                                    <option value="Ruangan 3">Ruangan 3</option>
-                                    <option value="Ruangan 4">Ruangan 4</option>
-                                    <option value="Ruangan 5">Ruangan 5</option>
-                                    <option value="Ruangan 6">Ruangan 6</option>
-                                    <option value="Ruangan 7">Ruangan 7</option>
-                                    <option value="Ruangan 8">Ruangan 8</option>
-                                    <option value="Ruangan 9">Ruangan 9</option>
-                                    <option value="Ruangan IT">Ruangan IT</option>
-                                    <option value="Ruangan Manajemen">Ruangan Manajemen</option>
+                                    @foreach($masterLokasis as $ruang)
+                                        <option value="{{ $ruang }}">{{ $ruang }}</option>
+                                    @endforeach
+                                    <!-- Fallback -->
+                                    @if(!$masterLokasis->contains('Ruangan IT')) <option value="Ruangan IT">Ruangan IT</option> @endif
+                                    @if(!$masterLokasis->contains('Ruangan Agent')) <option value="Ruangan Agent">Ruangan Agent</option> @endif
                                 </select>
                             </div>
                         </div>
@@ -470,19 +535,53 @@
                                 ];
                             @endphp
                             @foreach($stKategori as $key => $label)
-                            <div class="flex flex-col">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ $label }}</label>
+                            <div class="flex flex-col" x-data="assetSuggest('{{ $key }}')">
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">{{ $label }}</label>
                                 <div class="flex space-x-2">
-                                    <input type="text" name="items[{{ $key }}][no_aset]"
-                                        placeholder="Input No. Aset {{ $label }}..."
-                                        class="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8] focus:bg-white transition-all">
+                                    <div class="relative w-full">
+                                        <input type="text" name="items[{{ $key }}][no_aset]"
+                                            placeholder="Input No. Aset {{ $label }}..."
+                                            x-model="sn"
+                                            @input.debounce.300ms="formatInput(); fetchSuggestions()"
+                                            @focus="fetchSuggestions()"
+                                            @click.away="showSuggestions = false"
+                                            autocomplete="off"
+                                            class="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8] focus:bg-white transition-all uppercase">
+                                            
+                                        <!-- Suggestions dropdown -->
+                                        <div x-show="showSuggestions && suggestions.length > 0" x-cloak x-transition
+                                             class="absolute left-0 top-full mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto py-1">
+                                            <template x-for="sug in suggestions" :key="sug">
+                                                <div @click="selectSuggestion(sug)" class="px-4 py-2 hover:bg-blue-50 hover:text-blue-700 cursor-pointer text-sm text-slate-700 border-b border-slate-50 last:border-b-0 font-medium transition-colors" x-text="sug"></div>
+                                            </template>
+                                        </div>
+                                    </div>
                                     <!-- Hidden foto input -->
                                     <input type="file" name="items[{{ $key }}][foto]" accept="image/*" capture="environment"
-                                        class="hidden" id="cam-st-{{ $key }}">
+                                        class="hidden" id="cam-st-{{ $key }}"
+                                        @change="
+                                            if ($event.target.files.length > 0) {
+                                                hasFoto = true;
+                                                previewUrl = URL.createObjectURL($event.target.files[0]);
+                                            } else {
+                                                hasFoto = false;
+                                                previewUrl = '';
+                                            }
+                                        ">
                                     <button type="button" onclick="document.getElementById('cam-st-{{ $key }}').click()"
                                         title="Foto No. Aset"
-                                        class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-colors shrink-0 flex items-center justify-center shadow-sm border border-slate-200">
-                                        <i data-lucide="camera" class="w-4 h-4"></i>
+                                        :class="hasFoto ? 'border-emerald-500 ring-1 ring-emerald-500/20' : 'bg-slate-100 hover:bg-slate-200 border-slate-200'"
+                                        class="relative w-10 h-10 shrink-0 rounded-xl overflow-hidden transition-colors flex items-center justify-center shadow-sm border text-slate-600">
+                                        <iconify-icon icon="lucide:camera" x-show="!hasFoto" class="w-4 h-4"></iconify-icon>
+                                        
+                                        <template x-if="hasFoto">
+                                            <div class="absolute inset-0 w-full h-full">
+                                                <img :src="previewUrl" class="w-full h-full object-cover">
+                                                <div class="absolute inset-0 bg-emerald-500/30 backdrop-blur-[1px] flex items-center justify-center">
+                                                    <svg class="w-5 h-5 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                                </div>
+                                            </div>
+                                        </template>
                                     </button>
                                 </div>
                             </div>
@@ -490,13 +589,19 @@
                         </div>
                     </div>
                     <div class="flex justify-end pt-4">
-                        <button type="submit" class="bg-gradient-to-br from-[#1d4ed8] to-[#3b82f6] text-white px-6 py-2.5 rounded-xl font-medium shadow-soft text-sm">Simpan Transaksi</button>
+                        <button type="submit" :disabled="isSubmitting" class="bg-gradient-to-br from-[#1d4ed8] to-[#3b82f6] text-white px-6 py-2.5 rounded-xl font-medium shadow-soft text-sm disabled:opacity-75 disabled:cursor-not-allowed flex items-center justify-center">
+                            <svg x-show="isSubmitting" x-cloak class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span x-text="isSubmitting ? 'Memproses...' : 'Simpan Transaksi'"></span>
+                        </button>
                     </div>
                 </form>
 
                 <!-- FORM: Peminjaman -->
                 <div x-show="activeTab === 'peminjaman'" x-data="peminjamanApp()" class="space-y-6">
-                    <form id="form-peminjaman" action="{{ route('transaksi.peminjaman') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    <form id="form-peminjaman" action="{{ route('transaksi.peminjaman') }}" method="POST" enctype="multipart/form-data" @submit.prevent="submitForm" class="space-y-4">
                     @csrf
                     <!-- Hidden: karyawan_id (diisi setelah pencarian) -->
                     <input type="hidden" name="karyawan_id" x-model="karyawanId">
@@ -523,9 +628,20 @@
                     <!-- Pencarian Karyawan -->
                     <div class="mb-4">
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap Karyawan</label>
-                        <div class="flex space-x-2">
-                            <input type="text" x-model="cariNama" @keyup.enter.prevent="cariKaryawan()" @keydown.enter.prevent placeholder="Cari nama karyawan..." class="flex-1 px-4 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8]">
-                            <button type="button" @click="cariKaryawan()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors">Cari</button>
+                        <div class="flex space-x-2 relative" @click.away="showSuggestions = false">
+                            <input type="text" x-model="cariNama" @input.debounce.300ms="fetchSuggestions" @focus="if(cariNama.length >= 2) showSuggestions = true" @keyup.enter.prevent="cariKaryawan()" @keydown.enter.prevent placeholder="Cari nama karyawan..." class="flex-1 px-4 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8]" autocomplete="off">
+                            <button type="button" @click="cariKaryawan()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors z-10">Cari</button>
+                            <!-- Dropdown Suggestions -->
+                            <div x-show="showSuggestions && suggestions.length > 0" x-transition x-cloak class="absolute top-full left-0 right-16 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto">
+                                <ul class="py-1">
+                                    <template x-for="(sug, index) in suggestions" :key="index">
+                                        <li @click="selectSuggestion(sug)" class="px-4 py-2 hover:bg-slate-50 cursor-pointer text-sm text-slate-700 flex items-center gap-2 border-b border-slate-50 last:border-0 transition-colors">
+                                            <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400"></i>
+                                            <span x-text="sug" class="font-medium"></span>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </div>
                         </div>
                         <p class="text-xs text-slate-400 mt-1">Jika belum ada, tambahkan dulu di menu Karyawan.</p>
                     </div>
@@ -584,19 +700,53 @@
                                 ];
                             @endphp
                             @foreach($pmKategori as $key => $label)
-                            <div class="flex flex-col">
+                            <div class="flex flex-col" x-data="assetSuggest('{{ $key }}')">
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">{{ $label }}</label>
                                 <div class="flex space-x-2">
-                                    <input type="text" name="items[{{ $key }}][no_aset]"
-                                        placeholder="Input No. Aset {{ $label }}..."
-                                        class="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8] focus:bg-white transition-all">
+                                    <div class="relative w-full">
+                                        <input type="text" name="items[{{ $key }}][no_aset]"
+                                            placeholder="Input No. Aset {{ $label }}..."
+                                            x-model="sn"
+                                            @input.debounce.300ms="formatInput(); fetchSuggestions()"
+                                            @focus="fetchSuggestions()"
+                                            @click.away="showSuggestions = false"
+                                            autocomplete="off"
+                                            class="w-full px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8] focus:bg-white transition-all uppercase">
+                                            
+                                        <!-- Suggestions dropdown -->
+                                        <div x-show="showSuggestions && suggestions.length > 0" x-cloak x-transition
+                                             class="absolute left-0 top-full mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto py-1">
+                                            <template x-for="sug in suggestions" :key="sug">
+                                                <div @click="selectSuggestion(sug)" class="px-4 py-2 hover:bg-blue-50 hover:text-blue-700 cursor-pointer text-sm text-slate-700 border-b border-slate-50 last:border-b-0 font-medium transition-colors" x-text="sug"></div>
+                                            </template>
+                                        </div>
+                                    </div>
                                     <!-- Hidden foto input, dipicu kamera -->
                                     <input type="file" name="items[{{ $key }}][foto]" accept="image/*" capture="environment"
-                                        class="hidden" id="cam-pm-{{ $key }}">
+                                        class="hidden" id="cam-pm-{{ $key }}"
+                                        @change="
+                                            if ($event.target.files.length > 0) {
+                                                hasFoto = true;
+                                                previewUrl = URL.createObjectURL($event.target.files[0]);
+                                            } else {
+                                                hasFoto = false;
+                                                previewUrl = '';
+                                            }
+                                        ">
                                     <button type="button" onclick="document.getElementById('cam-pm-{{ $key }}').click()"
                                         title="Foto No. Aset"
-                                        class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-colors shrink-0 flex items-center justify-center shadow-sm border border-slate-200">
-                                        <i data-lucide="camera" class="w-4 h-4"></i>
+                                        :class="hasFoto ? 'border-emerald-500 ring-1 ring-emerald-500/20' : 'bg-slate-100 hover:bg-slate-200 border-slate-200'"
+                                        class="relative w-10 h-10 shrink-0 rounded-xl overflow-hidden transition-colors flex items-center justify-center shadow-sm border text-slate-600">
+                                        <iconify-icon icon="lucide:camera" x-show="!hasFoto" class="w-4 h-4"></iconify-icon>
+                                        
+                                        <template x-if="hasFoto">
+                                            <div class="absolute inset-0 w-full h-full">
+                                                <img :src="previewUrl" class="w-full h-full object-cover">
+                                                <div class="absolute inset-0 bg-emerald-500/30 backdrop-blur-[1px] flex items-center justify-center">
+                                                    <svg class="w-5 h-5 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                                </div>
+                                            </div>
+                                        </template>
                                     </button>
                                 </div>
                             </div>
@@ -656,10 +806,14 @@
 
                     <div class="flex justify-end pt-4" x-show="karyawanFound && showInputForm" style="display:none;">
                         <button type="submit" 
-                                :disabled="borrowType === 'luar' && (!karyawanItems.length || !karyawanItems.some(i => !i.hak_bawa_pulang))"
-                                :class="borrowType === 'luar' && (!karyawanItems.length || !karyawanItems.some(i => !i.hak_bawa_pulang)) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#1e40af]'"
-                                class="bg-gradient-to-br from-[#1d4ed8] to-[#3b82f6] transition-colors text-white px-6 py-2.5 rounded-xl font-medium shadow-soft text-sm">
-                            Simpan Peminjaman
+                                :disabled="isSubmitting || (borrowType === 'luar' && (!karyawanItems.length || !karyawanItems.some(i => !i.hak_bawa_pulang)))"
+                                :class="(isSubmitting || (borrowType === 'luar' && (!karyawanItems.length || !karyawanItems.some(i => !i.hak_bawa_pulang)))) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#1e40af]'"
+                                class="bg-gradient-to-br from-[#1d4ed8] to-[#3b82f6] text-white px-6 py-2.5 rounded-xl font-medium shadow-soft text-sm flex items-center justify-center">
+                            <svg x-show="isSubmitting" x-cloak class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span x-text="isSubmitting ? 'Memproses...' : 'Proses Peminjaman'"></span>
                         </button>
                     </div>
                     </form>
@@ -667,7 +821,7 @@
 
                 <!-- FORM: Penukaran -->
                 <form x-show="activeTab === 'penukaran'" x-data="penukaranApp()"
-                    action="{{ route('transaksi.penukaran') }}" method="POST" enctype="multipart/form-data"
+                    action="{{ route('transaksi.penukaran') }}" method="POST" enctype="multipart/form-data" @submit.prevent="submitForm"
                     class="space-y-6">
                     @csrf
                     <input type="hidden" name="karyawan_id" x-model="karyawanId">
@@ -675,9 +829,20 @@
                     <!-- Pencarian Karyawan -->
                     <div class="mb-4">
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap Karyawan</label>
-                        <div class="flex space-x-2">
-                            <input type="text" x-model="cariNama" @keyup.enter.prevent="cariKaryawan()" @keydown.enter.prevent placeholder="Cari nama karyawan..." class="flex-1 px-4 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8]">
-                            <button type="button" @click="cariKaryawan()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors">Cari</button>
+                        <div class="flex space-x-2 relative" @click.away="showSuggestions = false">
+                            <input type="text" x-model="cariNama" @input.debounce.300ms="fetchSuggestions" @focus="if(cariNama.length >= 2) showSuggestions = true" @keyup.enter.prevent="cariKaryawan()" @keydown.enter.prevent placeholder="Cari nama karyawan..." class="flex-1 px-4 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-[#1d4ed8]/20 focus:border-[#1d4ed8]" autocomplete="off">
+                            <button type="button" @click="cariKaryawan()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors z-10">Cari</button>
+                            <!-- Dropdown Suggestions -->
+                            <div x-show="showSuggestions && suggestions.length > 0" x-transition x-cloak class="absolute top-full left-0 right-16 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto">
+                                <ul class="py-1">
+                                    <template x-for="(sug, index) in suggestions" :key="index">
+                                        <li @click="selectSuggestion(sug)" class="px-4 py-2 hover:bg-slate-50 cursor-pointer text-sm text-slate-700 flex items-center gap-2 border-b border-slate-50 last:border-0 transition-colors">
+                                            <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400"></i>
+                                            <span x-text="sug" class="font-medium"></span>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </div>
                         </div>
                         <p class="text-xs text-slate-400 mt-1">Jika belum ada, tambahkan dulu di menu Karyawan.</p>
                     </div>
@@ -735,20 +900,57 @@
                                         <div class="flex-1 flex gap-2">
                                             <input type="text" :name="'items[' + cat.key + '][sn_lama]'" :value="cat.sn_lama" readonly
                                                 class="w-1/2 px-4 py-2 rounded-xl border border-rose-200 bg-rose-50/50 text-rose-700 text-sm outline-none cursor-not-allowed" title="Aset Lama (Otomatis)">
-                                            <input type="text" :name="'items[' + cat.key + '][no_aset]'"
-                                                placeholder="No. Aset Baru..." required
-                                                class="w-1/2 px-4 py-2 rounded-xl border border-emerald-200 bg-white text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-sm transition-all">
+                                            <div class="relative w-1/2" x-data="assetSuggest(cat.key)">
+                                                <input type="text" :name="'items[' + cat.key + '][no_aset]'"
+                                                    placeholder="No. Aset Baru..." required
+                                                    x-model="sn"
+                                                    @input.debounce.300ms="formatInput(); fetchSuggestions()"
+                                                    @focus="fetchSuggestions()"
+                                                    @click.away="showSuggestions = false"
+                                                    autocomplete="off"
+                                                    class="w-full px-4 py-2 rounded-xl border border-emerald-200 bg-white text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-sm transition-all uppercase">
+                                                
+                                                <!-- Suggestions dropdown -->
+                                                <div x-show="showSuggestions && suggestions.length > 0" x-cloak x-transition
+                                                     class="absolute left-0 top-full mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto py-1">
+                                                    <template x-for="sug in suggestions" :key="sug">
+                                                        <div @click="selectSuggestion(sug)" class="px-4 py-2 hover:bg-blue-50 hover:text-blue-700 cursor-pointer text-sm text-slate-700 border-b border-slate-50 last:border-b-0 font-medium transition-colors" x-text="sug"></div>
+                                                    </template>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="relative shrink-0 flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
                                             <input type="file" :name="'items[' + cat.key + '][foto]'" accept="image/*" capture="environment"
-                                                class="opacity-0 absolute -z-10 w-0 h-0" :id="'cam-pn-' + cat.key" @change="cat.has_foto = true">
+                                                class="opacity-0 absolute -z-10 w-0 h-0" :id="'cam-pn-' + cat.key" 
+                                                @change="
+                                                    if ($event.target.files.length > 0) {
+                                                        cat.has_foto = true;
+                                                        cat.previewUrl = URL.createObjectURL($event.target.files[0]);
+                                                    } else {
+                                                        cat.has_foto = false;
+                                                        cat.previewUrl = '';
+                                                    }
+                                                ">
                                             <button type="button" @click="document.getElementById('cam-pn-' + cat.key).click()"
-                                                :class="cat.has_foto ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'"
+                                                :class="cat.has_foto ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'"
                                                 title="Foto Aset Baru"
-                                                class="w-full sm:w-auto px-3 py-2 sm:py-2.5 rounded-xl transition-colors shrink-0 flex items-center justify-center shadow-sm border font-semibold text-xs">
-                                                <i data-lucide="camera" class="w-4 h-4 mr-1" x-show="!cat.has_foto"></i>
-                                                <i data-lucide="check-circle-2" class="w-4 h-4 mr-1" x-show="cat.has_foto"></i>
-                                                <span x-text="cat.has_foto ? 'Foto Tersimpan' : 'Foto Aset'"></span>
+                                                class="w-full sm:w-auto relative overflow-hidden px-3 py-2 sm:py-2.5 rounded-xl transition-colors shrink-0 flex items-center justify-center shadow-sm border font-semibold text-xs h-10 sm:h-11">
+                                                
+                                                <div x-show="!cat.has_foto" class="flex items-center">
+                                                    <iconify-icon icon="lucide:camera" class="w-4 h-4 mr-1.5"></iconify-icon>
+                                                    <span>Foto Aset Baru</span>
+                                                </div>
+
+                                                <template x-if="cat.has_foto">
+                                                    <div class="absolute inset-0 w-full h-full flex items-center justify-center">
+                                                        <img :src="cat.previewUrl" class="absolute inset-0 w-full h-full object-cover">
+                                                        <div class="absolute inset-0 bg-emerald-600/60 backdrop-blur-[1px]"></div>
+                                                        <div class="relative flex items-center text-white z-10 drop-shadow-md">
+                                                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                                            <span>Foto Terlampir</span>
+                                                        </div>
+                                                    </div>
+                                                </template>
                                             </button>
                                         </div>
                                     </div>
@@ -768,7 +970,13 @@
                     </div>
 
                     <div class="flex justify-end pt-2" x-show="karyawanFound" style="display:none;">
-                        <button type="submit" class="bg-gradient-to-br from-[#1d4ed8] to-[#3b82f6] text-white px-6 py-2.5 rounded-xl font-medium shadow-soft text-sm">Proses Penukaran</button>
+                        <button type="submit" :disabled="isSubmitting" class="bg-gradient-to-br from-[#1d4ed8] to-[#3b82f6] text-white px-6 py-2.5 rounded-xl font-medium shadow-soft text-sm disabled:opacity-75 disabled:cursor-not-allowed flex items-center justify-center">
+                            <svg x-show="isSubmitting" x-cloak class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span x-text="isSubmitting ? 'Memproses...' : 'Proses Penukaran'"></span>
+                        </button>
                     </div>
                 </form>
 
@@ -933,7 +1141,7 @@
                                 </div>
                                 <div class="shrink-0" x-show="item.hak_bawa_pulang">
                                     <label class="text-xs text-slate-600 block mb-1">Tujuan Retur</label>
-                                    <select :name="'items[' + item.no_aset + '][tujuan]'" class="w-full sm:w-auto px-3 py-1.5 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white">
+                                    <select :name="'items[' + item.no_aset + '][tujuan]'" :disabled="!item.hak_bawa_pulang" class="w-full sm:w-auto px-3 py-1.5 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-white">
                                         <option value="kantor">Tetap Pakai (Cabut Hak Bawa Pulang)</option>
                                         <option value="it">Selesai (Kembali ke IT)</option>
                                     </select>
@@ -1155,6 +1363,46 @@
 
     @stack('scripts')
     <script>
+        window.compressImageFile = function(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 800;
+                        const MAX_HEIGHT = 800;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                        } else {
+                            if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                            }
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        canvas.toBlob((blob) => {
+                            resolve(new File([blob], file.name, {
+                                type: 'image/jpeg',
+                                lastModified: Date.now()
+                            }));
+                        }, 'image/jpeg', 0.6);
+                    };
+                };
+            });
+        };
 
         // --- Alpine Data for Forms ---
         function peminjamanApp() {
@@ -1168,6 +1416,54 @@
                 karyawanId: '',
                 karyawanItems: [],
                 showInputForm: false,
+                isSubmitting: false,
+                async submitForm(e) {
+                    if (this.isSubmitting) return;
+                    this.isSubmitting = true;
+                    await new Promise(r => setTimeout(r, 100));
+                    const fileInputs = e.target.querySelectorAll('input[type="file"][accept*="image"]');
+                    for (let input of fileInputs) {
+                        if (input.files && input.files.length > 0) {
+                            const dataTransfer = new DataTransfer();
+                            for (let i = 0; i < input.files.length; i++) {
+                                const file = input.files[i];
+                                if (file.type.startsWith('image/') && file.size > 500 * 1024) {
+                                    try {
+                                        const compressedFile = await window.compressImageFile(file);
+                                        dataTransfer.items.add(compressedFile);
+                                    } catch (err) {
+                                        dataTransfer.items.add(file);
+                                    }
+                                } else {
+                                    dataTransfer.items.add(file);
+                                }
+                            }
+                            input.files = dataTransfer.files;
+                        }
+                    }
+                    HTMLFormElement.prototype.submit.call(e.target);
+                },
+                async fetchSuggestions() {
+                    if (this.cariNama.length < 2) {
+                        this.suggestions = [];
+                        this.showSuggestions = false;
+                        return;
+                    }
+                    try {
+                        const response = await fetch(`/workspaceinventory/api/search/suggestions?type=karyawan&q=${encodeURIComponent(this.cariNama)}`);
+                        const result = await response.json();
+                        this.suggestions = result;
+                        this.showSuggestions = true;
+                        this.$nextTick(() => { if(window.lucide) window.lucide.createIcons({ icons: window.lucide.icons }); });
+                    } catch (e) {
+                        console.error('Error fetching suggestions:', e);
+                    }
+                },
+                selectSuggestion(sug) {
+                    this.cariNama = sug;
+                    this.showSuggestions = false;
+                    this.cariKaryawan();
+                },
                 async cariKaryawan() {
                     if (!this.cariNama) return;
                     this.sudahCari = true;
@@ -1207,6 +1503,33 @@
                 karyawanId: '',
                 karyawanItems: [],
                 activeSwapCategories: [],
+                isSubmitting: false,
+                async submitForm(e) {
+                    if (this.isSubmitting) return;
+                    this.isSubmitting = true;
+                    await new Promise(r => setTimeout(r, 100));
+                    const fileInputs = e.target.querySelectorAll('input[type="file"][accept*="image"]');
+                    for (let input of fileInputs) {
+                        if (input.files && input.files.length > 0) {
+                            const dataTransfer = new DataTransfer();
+                            for (let i = 0; i < input.files.length; i++) {
+                                const file = input.files[i];
+                                if (file.type.startsWith('image/') && file.size > 500 * 1024) {
+                                    try {
+                                        const compressedFile = await window.compressImageFile(file);
+                                        dataTransfer.items.add(compressedFile);
+                                    } catch (err) {
+                                        dataTransfer.items.add(file);
+                                    }
+                                } else {
+                                    dataTransfer.items.add(file);
+                                }
+                            }
+                            input.files = dataTransfer.files;
+                        }
+                    }
+                    HTMLFormElement.prototype.submit.call(e.target);
+                },
                 
                 getCategoryKey(item) {
                     if (item.sn) return item.sn.replace(/\W/g, '');
@@ -1235,6 +1558,27 @@
                     return this.activeSwapCategories.some(i => i.key === key);
                 },
 
+                async fetchSuggestions() {
+                    if (this.cariNama.length < 2) {
+                        this.suggestions = [];
+                        this.showSuggestions = false;
+                        return;
+                    }
+                    try {
+                        const response = await fetch(`/workspaceinventory/api/search/suggestions?type=karyawan&q=${encodeURIComponent(this.cariNama)}`);
+                        const result = await response.json();
+                        this.suggestions = result;
+                        this.showSuggestions = true;
+                        this.$nextTick(() => { if(window.lucide) window.lucide.createIcons({ icons: window.lucide.icons }); });
+                    } catch (e) {
+                        console.error('Error fetching suggestions:', e);
+                    }
+                },
+                selectSuggestion(sug) {
+                    this.cariNama = sug;
+                    this.showSuggestions = false;
+                    this.cariKaryawan();
+                },
                 async cariKaryawan() {
                     if (!this.cariNama) return;
                     this.sudahCari = true;
@@ -1278,6 +1622,16 @@
                 showHistoryModal: false,
                 subTipe: 'pinjam_internal',
                 searchQuery: '',
+                suggestions: [],
+                showSuggestions: false,
+                currentPagePinjam: 1,
+                perPagePinjam: 15,
+                currentPageST: 1,
+                perPageST: 15,
+                currentPagePenukaran: 1,
+                perPagePenukaran: 15,
+                currentPageRiwayat: 1,
+                perPageRiwayat: 15,
                 filterDate: '',
                 filterKategori: 'semua',
                 
@@ -1289,6 +1643,89 @@
                 selectedItems: [],
                 karyawanDB: [], // No longer used, fetched dynamically
                 
+                isSubmitting: false,
+                async submitForm(e) {
+                    if (this.isSubmitting) return;
+                    this.isSubmitting = true;
+                    await new Promise(r => setTimeout(r, 100));
+                    const fileInputs = e.target.querySelectorAll('input[type="file"][accept*="image"]');
+                    for (let input of fileInputs) {
+                        if (input.files && input.files.length > 0) {
+                            const dataTransfer = new DataTransfer();
+                            for (let i = 0; i < input.files.length; i++) {
+                                const file = input.files[i];
+                                if (file.type.startsWith('image/') && file.size > 500 * 1024) {
+                                    try {
+                                        const compressedFile = await window.compressImageFile(file);
+                                        dataTransfer.items.add(compressedFile);
+                                    } catch (err) {
+                                        dataTransfer.items.add(file);
+                                    }
+                                } else {
+                                    dataTransfer.items.add(file);
+                                }
+                            }
+                            input.files = dataTransfer.files;
+                        }
+                    }
+                    HTMLFormElement.prototype.submit.call(e.target);
+                },
+                
+                copyNfcLink(penerima) {
+                    if (!penerima) return;
+                    const formattedName = penerima.trim().toLowerCase().replace(/\s+/g, '-');
+                    const url = `https://inventory.mptb.web.id/user/cek-aset/${formattedName}`;
+                    
+                    Swal.fire({
+                        title: 'Link NFC',
+                        html: `
+                            <p class="text-sm text-slate-500 mb-3">Gunakan link ini untuk NFC Tag:</p>
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="nfc-url-input" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono text-slate-700 outline-none" value="${url}" readonly>
+                                <button id="copy-nfc-btn" onclick="navigator.clipboard.writeText(document.getElementById('nfc-url-input').value).then(() => { 
+                                    let btn = document.getElementById('copy-nfc-btn');
+                                    btn.innerHTML = '<iconify-icon icon=&quot;mdi:check-circle&quot; class=&quot;w-4 h-4 mr-1&quot;></iconify-icon> Tersalin';
+                                    btn.classList.remove('bg-[#1d4ed8]', 'hover:bg-[#1e40af]');
+                                    btn.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
+                                    setTimeout(() => { 
+                                        btn.innerHTML = 'Salin'; 
+                                        btn.classList.add('bg-[#1d4ed8]', 'hover:bg-[#1e40af]');
+                                        btn.classList.remove('bg-emerald-500', 'hover:bg-emerald-600');
+                                    }, 2000);
+                                })" class="px-3 py-2 bg-[#1d4ed8] text-white rounded-lg text-sm font-semibold hover:bg-[#1e40af] transition-colors whitespace-nowrap flex items-center justify-center min-w-[90px]">
+                                    Salin
+                                </button>
+                            </div>
+                        `,
+                        showConfirmButton: false,
+                        showCloseButton: true,
+                        customClass: {
+                            popup: 'rounded-2xl',
+                            htmlContainer: 'overflow-visible'
+                        }
+                    });
+                },
+                async fetchSuggestions() {
+                    if (this.cariNama.length < 2) {
+                        this.suggestions = [];
+                        this.showSuggestions = false;
+                        return;
+                    }
+                    try {
+                        const response = await fetch(`/workspaceinventory/api/search/suggestions?type=karyawan&q=${encodeURIComponent(this.cariNama)}`);
+                        const result = await response.json();
+                        this.suggestions = result;
+                        this.showSuggestions = true;
+                        this.$nextTick(() => { if(window.lucide) window.lucide.createIcons({ icons: window.lucide.icons }); });
+                    } catch (e) {
+                        console.error('Error fetching suggestions:', e);
+                    }
+                },
+                selectSuggestion(sug) {
+                    this.cariNama = sug;
+                    this.showSuggestions = false;
+                    this.cariKaryawan();
+                },
                 async cariKaryawan() {
                     if(!this.searchKaryawan) return;
                     
@@ -1318,22 +1755,24 @@
                     'doc' => $t->doc_number,
                     'tanggal' => $t->created_at->format('d M Y'),
                     'raw_tanggal' => $t->created_at->format('Y-m-d'),
-                    'penerima' => $t->nama_pengaju,
+                    'penerima' => ucwords(strtolower($t->nama_pengaju)),
                     'dept' => $t->department,
                     'items' => $t->items->count(),
                     'items_data' => $t->items->map($mapItems),
+                    'bast_status' => $t->bast_status,
                 ])) !!},
                 pinjamList: {!! json_encode($activeBorrowers) !!},
                 historyPeminjamanList: {!! json_encode(isset($historyPeminjaman) ? $historyPeminjaman->map(fn($t) => [
                     'id' => $t->id,
                     'doc' => $t->doc_number,
-                    'peminjam' => $t->nama_pengaju,
+                    'peminjam' => ucwords(strtolower($t->nama_pengaju)),
                     'dept' => $t->department,
                     'barang' => $t->items->count() . ' Barang',
                     'tgl' => $t->created_at->format('d M Y'),
                     'raw_tanggal' => $t->created_at->format('Y-m-d'),
                     'status' => $t->status,
                     'type' => $t->type,
+                    'borrow_type' => $t->borrow_type,
                     'items_data' => $t->items->map($mapItems),
                 ]) : []) !!},
                 penukaranList: {!! json_encode($penukaran->map(fn($t) => [
@@ -1372,7 +1811,7 @@
                         let match = true;
                         if (this.searchQuery) {
                             const q = this.searchQuery.toLowerCase();
-                            match = item.doc.toLowerCase().includes(q) || item.penerima.toLowerCase().includes(q);
+                            match = (item.doc || '').toLowerCase().includes(q) || (item.penerima || '').toLowerCase().includes(q);
                         }
                         if (match && this.filterDate) {
                             match = item.raw_tanggal === this.filterDate;
@@ -1384,17 +1823,38 @@
                     return this.pinjamList.filter(item => {
                         if (this.searchQuery) {
                             const q = this.searchQuery.toLowerCase();
-                            return item.peminjam.toLowerCase().includes(q) || item.dept.toLowerCase().includes(q);
+                            return (item.peminjam || '').toLowerCase().includes(q) || (item.dept || '').toLowerCase().includes(q);
                         }
                         return true;
                     });
+                },
+                get filteredPinjamListByTab() {
+                    return this.filteredPinjamList.filter(i => 
+                        this.subTabPeminjaman === 'aktif_dalam' ? i.pinjam_dalam > 0 : i.pinjam_luar > 0
+                    );
+                },
+                get paginatedPinjamList() {
+                    let start = (this.currentPagePinjam - 1) * this.perPagePinjam;
+                    return this.filteredPinjamListByTab.slice(start, start + this.perPagePinjam);
+                },
+                get paginatedSerahTerimaList() {
+                    let start = (this.currentPageST - 1) * this.perPageST;
+                    return this.filteredSerahTerimaList.slice(start, start + this.perPageST);
+                },
+                get paginatedPenukaranList() {
+                    let start = (this.currentPagePenukaran - 1) * this.perPagePenukaran;
+                    return this.filteredPenukaranList.slice(start, start + this.perPagePenukaran);
+                },
+                get paginatedHistoryPeminjamanList() {
+                    let start = (this.currentPageRiwayat - 1) * this.perPageRiwayat;
+                    return this.filteredHistoryPeminjamanList.slice(start, start + this.perPageRiwayat);
                 },
                 get filteredHistoryPeminjamanList() {
                     return this.historyPeminjamanList.filter(item => {
                         let match = true;
                         if (this.searchQuery) {
                             const q = this.searchQuery.toLowerCase();
-                            match = item.doc.toLowerCase().includes(q) || item.peminjam.toLowerCase().includes(q);
+                            match = (item.doc || '').toLowerCase().includes(q) || (item.peminjam || '').toLowerCase().includes(q);
                         }
                         if (match && this.filterDate) {
                             match = item.raw_tanggal === this.filterDate;
@@ -1407,7 +1867,7 @@
                         let match = true;
                         if (this.searchQuery) {
                             const q = this.searchQuery.toLowerCase();
-                            match = item.doc.toLowerCase().includes(q) || item.pengguna.toLowerCase().includes(q);
+                            match = (item.doc || '').toLowerCase().includes(q) || (item.pengguna || '').toLowerCase().includes(q);
                         }
                         if (match && this.filterDate) {
                             match = item.raw_tanggal === this.filterDate;
@@ -1435,6 +1895,49 @@
                     this.pinInput = '';
                     this.pinError = '';
                 },
+                confirmDelete(item) {
+                    this.deleteMode = 'single';
+                    this.deleteItem = item;
+                    this.pinInput = '';
+                    this.pinError = '';
+                    this.openPinModal = true;
+                },
+                
+                async updateBastStatus(id, newStatus) {
+                    try {
+                        const response = await fetch(`/workspaceinventory/transaksi/${id}/bast-status`, {
+                            method: 'PATCH',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ bast_status: newStatus })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (response.ok) {
+                            // Update local state if needed (already bound by x-model, but good to be sure)
+                            if (window.Swal) {
+                                Swal.fire({
+                                    toast: true,
+                                    position: 'top-end',
+                                    icon: 'success',
+                                    title: 'Status BAST diperbarui',
+                                    showConfirmButton: false,
+                                    timer: 2000
+                                });
+                            }
+                        } else {
+                            alert(data.message || 'Gagal memperbarui status');
+                        }
+                    } catch (error) {
+                        console.error('Error updating status:', error);
+                        alert('Terjadi kesalahan sistem');
+                    }
+                },
+
                 processDelete() {
                     this.pinError = '';
                     if (!this.pinInput) {
@@ -1477,10 +1980,19 @@
                         this.$nextTick(() => { if(window.lucide) window.lucide.createIcons({ icons: window.lucide.icons }); });
                     });
                     this.$watch('searchQuery', () => { 
+                        this.currentPagePinjam = 1;
+                        this.currentPageST = 1;
+                        this.currentPagePenukaran = 1;
+                        this.currentPageRiwayat = 1;
                         this.$nextTick(() => { if(window.lucide) window.lucide.createIcons({ icons: window.lucide.icons }); });
                     });
                     this.$watch('subTabPeminjaman', (val) => { 
                         localStorage.setItem('tx_subTabPeminjaman', val);
+                        this.currentPagePinjam = 1;
+                        this.currentPageRiwayat = 1;
+                        this.$nextTick(() => { if(window.lucide) window.lucide.createIcons({ icons: window.lucide.icons }); });
+                    });
+                    this.$watch('paginatedPinjamList', () => { 
                         this.$nextTick(() => { if(window.lucide) window.lucide.createIcons({ icons: window.lucide.icons }); });
                     });
                 }
@@ -1489,6 +2001,38 @@
         
         document.addEventListener('alpine:init', () => {
             Alpine.data('transaksiApp', transaksiApp);
+
+            // --- Asset SN Autocomplete (untuk input No. Aset baru di form Penukaran & Peminjaman) ---
+            Alpine.data('assetSuggest', (key) => ({
+                sn: '',
+                suggestions: [],
+                showSuggestions: false,
+
+                formatInput() {
+                    this.sn = this.sn.toUpperCase();
+                },
+
+                async fetchSuggestions() {
+                    if (this.sn.length < 2) {
+                        this.suggestions = [];
+                        this.showSuggestions = false;
+                        return;
+                    }
+                    try {
+                        const response = await fetch(`/workspaceinventory/api/search/suggestions?type=sn&q=${encodeURIComponent(this.sn)}`);
+                        const result = await response.json();
+                        this.suggestions = result;
+                        this.showSuggestions = result.length > 0;
+                    } catch (e) {
+                        console.error('Error fetching asset suggestions:', e);
+                    }
+                },
+
+                selectSuggestion(sug) {
+                    this.sn = sug;
+                    this.showSuggestions = false;
+                },
+            }));
         });
     </script>
 </x-layout>

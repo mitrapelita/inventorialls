@@ -20,6 +20,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Iconify -->
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <style>
         [x-cloak] { display: none !important; }
         body.swal2-height-auto { height: 100vh !important; }
