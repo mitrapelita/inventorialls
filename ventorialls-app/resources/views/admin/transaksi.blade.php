@@ -2007,6 +2007,8 @@
                 sn: '',
                 suggestions: [],
                 showSuggestions: false,
+                hasFoto: false,
+                previewUrl: '',
 
                 formatInput() {
                     this.sn = this.sn.toUpperCase();
